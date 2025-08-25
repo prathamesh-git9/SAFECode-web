@@ -40,7 +40,7 @@ module.exports = async (req, res) => {
                         fixedCode = fixedCode.replace(
                             /strcpy\s*\(\s*([^,]+)\s*,\s*([^)]+)\s*\)/g,
                             (match, buffer, source) => {
-                                return `strncpy(${buffer}, ${source}, sizeof(${buffer.trim()}) - 1);\n    ${buffer.trim()}[sizeof(${buffer.trim()}) - 1] = '\\0';`;
+                                return `strncpy(${buffer.trim()}, ${source}, sizeof(${buffer.trim()}) - 1);\n    ${buffer.trim()}[sizeof(${buffer.trim()}) - 1] = '\\0';`;
                             }
                         );
 
@@ -48,7 +48,7 @@ module.exports = async (req, res) => {
                         fixedCode = fixedCode.replace(
                             /gets\s*\(\s*([^)]+)\s*\)/g,
                             (match, buffer) => {
-                                return `fgets(${buffer}, sizeof(${buffer.trim()}), stdin)`;
+                                return `fgets(${buffer.trim()}, sizeof(${buffer.trim()}), stdin)`;
                             }
                         );
 
@@ -56,7 +56,7 @@ module.exports = async (req, res) => {
                         fixedCode = fixedCode.replace(
                             /sprintf\s*\(\s*([^,]+)\s*,\s*([^)]+)\s*\)/g,
                             (match, buffer, format) => {
-                                return `snprintf(${buffer}, sizeof(${buffer.trim()}), ${format})`;
+                                return `snprintf(${buffer.trim()}, sizeof(${buffer.trim()}), ${format})`;
                             }
                         );
 
@@ -64,7 +64,7 @@ module.exports = async (req, res) => {
                         fixedCode = fixedCode.replace(
                             /strcat\s*\(\s*([^,]+)\s*,\s*([^)]+)\s*\)/g,
                             (match, buffer, source) => {
-                                return `strncat(${buffer}, ${source}, sizeof(${buffer.trim()}) - strlen(${buffer.trim()}) - 1)`;
+                                return `strncat(${buffer.trim()}, ${source}, sizeof(${buffer.trim()}) - strlen(${buffer.trim()}) - 1)`;
                             }
                         );
                     }
