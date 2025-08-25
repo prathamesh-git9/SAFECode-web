@@ -1,15 +1,13 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "public/**",
-      "use": "@vercel/static"
+  "functions": {
+    "api/scan.js": {
+      "runtime": "nodejs18.x"
     },
-    {
-      "src": "api/**/*.js",
-      "use": "@vercel/node"
+    "api/fix.js": {
+      "runtime": "nodejs18.x"
     }
-  ],
+  },
   "rewrites": [
     {
       "source": "/api/(.*)",
