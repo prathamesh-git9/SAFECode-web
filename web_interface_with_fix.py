@@ -482,7 +482,6 @@ HTML_TEMPLATE = """
     <nav class="navbar">
         <div class="nav-container">
             <a href="/" class="nav-logo">
-                <span class="logo-icon">🔒</span>
                 <span>SAFECode</span>
             </a>
             <div class="nav-menu">
@@ -491,7 +490,6 @@ HTML_TEMPLATE = """
                 <a href="/signup" class="nav-menu-link">Sign Up</a>
                 <button class="theme-toggle" onclick="toggleTheme()">
                     <span id="theme-icon">🌙</span>
-                    <span id="theme-text">Dark Mode</span>
                 </button>
             </div>
         </div>
@@ -1178,7 +1176,6 @@ LOGIN_TEMPLATE = """
     <nav class="navbar">
         <div class="nav-container">
             <a href="/" class="nav-logo">
-                <span class="logo-icon">🔒</span>
                 <span>SAFECode</span>
             </a>
             <div class="nav-menu">
@@ -1385,7 +1382,6 @@ SIGNUP_TEMPLATE = """
     <nav class="navbar">
         <div class="nav-container">
             <a href="/" class="nav-logo">
-                <span class="logo-icon">🔒</span>
                 <span>SAFECode</span>
             </a>
             <div class="nav-menu">
@@ -1613,7 +1609,6 @@ HOW_TO_USE_TEMPLATE = """
     <nav class="navbar">
         <div class="nav-container">
             <a href="/" class="nav-logo">
-                <span class="logo-icon">🔒</span>
                 <span>SAFECode</span>
             </a>
             <div class="nav-menu">
