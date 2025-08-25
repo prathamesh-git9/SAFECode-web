@@ -40,7 +40,8 @@ module.exports = async (req, res) => {
                         fixedCode = fixedCode.replace(
                             /strcpy\s*\(\s*([^,]+)\s*,\s*([^)]+)\s*\)/g,
                             (match, buffer, source) => {
-                                return `strncpy(${buffer.trim()}, ${source}, sizeof(${buffer.trim()}) - 1);\n    ${buffer.trim()}[sizeof(${buffer.trim()}) - 1] = '\\0';`;
+                                const bufferName = buffer.trim();
+                                return `strncpy(${bufferName}, ${source}, sizeof(${bufferName}) - 1);\n    ${bufferName}[sizeof(${bufferName}) - 1] = '\\0';`;
                             }
                         );
 
@@ -48,7 +49,8 @@ module.exports = async (req, res) => {
                         fixedCode = fixedCode.replace(
                             /gets\s*\(\s*([^)]+)\s*\)/g,
                             (match, buffer) => {
-                                return `fgets(${buffer.trim()}, sizeof(${buffer.trim()}), stdin)`;
+                                const bufferName = buffer.trim();
+                                return `fgets(${bufferName}, sizeof(${bufferName}), stdin)`;
                             }
                         );
 
@@ -56,7 +58,8 @@ module.exports = async (req, res) => {
                         fixedCode = fixedCode.replace(
                             /sprintf\s*\(\s*([^,]+)\s*,\s*([^)]+)\s*\)/g,
                             (match, buffer, format) => {
-                                return `snprintf(${buffer.trim()}, sizeof(${buffer.trim()}), ${format})`;
+                                const bufferName = buffer.trim();
+                                return `snprintf(${bufferName}, sizeof(${bufferName}), ${format})`;
                             }
                         );
 
@@ -64,7 +67,8 @@ module.exports = async (req, res) => {
                         fixedCode = fixedCode.replace(
                             /strcat\s*\(\s*([^,]+)\s*,\s*([^)]+)\s*\)/g,
                             (match, buffer, source) => {
-                                return `strncat(${buffer.trim()}, ${source}, sizeof(${buffer.trim()}) - strlen(${buffer.trim()}) - 1)`;
+                                const bufferName = buffer.trim();
+                                return `strncat(${bufferName}, ${source}, sizeof(${bufferName}) - strlen(${bufferName}) - 1)`;
                             }
                         );
                     }
