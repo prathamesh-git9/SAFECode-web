@@ -47,6 +47,24 @@ Thumbs.db
 fixed_code.c
 test.c
 
+# Test files created during development
+test_*.c
+test_*.html
+test_*.py
+test_buttons.html
+test_js.html
+test_export.c
+test_vulnerable.c
+test_web_interface.py
+test_complex_vulnerabilities.py
+test_gpt_fix.py
+
+# Documentation files created during development
+CLEANUP_SUMMARY.md
+FIXED_ISSUES.md
+test_summary.md
+VERSIONING.md
+
 # Environment variables
 .env
 .env.local
