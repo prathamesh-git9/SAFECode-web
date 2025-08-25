@@ -149,10 +149,11 @@ async def scan_code(
         
         # Update telemetry
         scan_duration = time.time() - start_time
-        telemetry.record_scan(
-            len(findings),
+        telemetry.record_scan_request(
             scan_duration,
+            findings,
             len([f for f in findings if f["status"] == "SUPPRESSED"]),
+            False,  # timeout
             len(paginated_findings) < len(findings)  # truncated
         )
         
@@ -215,7 +216,7 @@ async def scan_code_raw(
         
         # Update telemetry
         scan_duration = time.time() - start_time
-        telemetry.record_scan(len(findings), scan_duration, 0, False)
+        telemetry.record_scan_request(scan_duration, findings, 0, False, False)
         
         # Create response
         response = ScanResponse(
@@ -350,7 +351,7 @@ async def fix_code(
         
         # Update telemetry
         scan_duration = time.time() - start_time
-        telemetry.record_scan(len(findings), scan_duration, 0, False)
+        telemetry.record_scan_request(scan_duration, findings, 0, False, False)
         
         # Create response
         response = {

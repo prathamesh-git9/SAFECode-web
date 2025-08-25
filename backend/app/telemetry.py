@@ -243,6 +243,11 @@ def get_telemetry() -> TelemetryCollector:
     return _telemetry
 
 
+def get_telemetry_collector() -> TelemetryCollector:
+    """Get the global telemetry instance (alias for compatibility)."""
+    return get_telemetry()
+
+
 def record_scan_metrics(duration: float, findings: List[Dict], suppressions: int,
                        timeout: bool = False, truncated: bool = False):
     """

@@ -153,6 +153,11 @@ def create_summary_stats(findings: List[Dict]) -> Dict:
     return summary
 
 
+def create_scan_summary(findings: List[Dict]) -> Dict:
+    """Create scan summary from findings (alias for create_summary_stats)."""
+    return create_summary_stats(findings)
+
+
 def paginate_results(results: List[Dict], limit: int, offset: int) -> Dict:
     """Paginate results with metadata."""
     total = len(results)
