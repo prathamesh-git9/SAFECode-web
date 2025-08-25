@@ -18,6 +18,11 @@ def setup_utf8_encoding():
         pass
 
 
+def setup_utf8():
+    """Configure UTF-8 encoding (alias for setup_utf8_encoding)."""
+    setup_utf8_encoding()
+
+
 def as_utf8(obj: Any) -> str:
     """Coerce object to UTF-8 string, sanitizing non-UTF-8 content."""
     if obj is None:
@@ -251,3 +256,27 @@ def is_safe_for_logging(text: str) -> bool:
             return False
     
     return True
+
+
+def truncate_snippet(snippet: str, max_chars: int) -> str:
+    """Truncate code snippet to maximum character limit."""
+    if len(snippet) <= max_chars:
+        return snippet
+    
+    # Try to break at line boundaries
+    lines = snippet.split('\n')
+    truncated_lines = []
+    current_length = 0
+    
+    for line in lines:
+        if current_length + len(line) + 1 <= max_chars - 3:  # Leave room for "..."
+            truncated_lines.append(line)
+            current_length += len(line) + 1
+        else:
+            break
+    
+    if truncated_lines:
+        return '\n'.join(truncated_lines) + "..."
+    else:
+        # If even one line is too long, truncate it
+        return snippet[:max_chars-3] + "..."
