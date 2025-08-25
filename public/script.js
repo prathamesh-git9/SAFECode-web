@@ -22,7 +22,7 @@ function toggleTheme() {
     setTheme(newTheme);
 }
 
-// API endpoints (will be replaced with Firebase Functions URLs)
+// API endpoints for Vercel serverless functions
 const API_BASE = window.location.origin + '/api';
 
 // Utility functions
