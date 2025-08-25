@@ -28,19 +28,19 @@ module.exports = async (req, res) => {
 
         // Simple, reliable fixes
         // Fix strcpy
-        fixedCode = fixedCode.replace(/strcpy\s*\(\s*([^,]+)\s*,\s*([^)]+)\s*\)/g, 
+        fixedCode = fixedCode.replace(/strcpy\s*\(\s*([^,]+)\s*,\s*([^)]+)\s*\)/g,
             'strncpy($1, $2, sizeof($1) - 1);\n    $1[sizeof($1) - 1] = \'\\0\'');
 
         // Fix gets
-        fixedCode = fixedCode.replace(/gets\s*\(\s*([^)]+)\s*\)/g, 
+        fixedCode = fixedCode.replace(/gets\s*\(\s*([^)]+)\s*\)/g,
             'fgets($1, sizeof($1), stdin)');
 
         // Fix sprintf
-        fixedCode = fixedCode.replace(/sprintf\s*\(\s*([^,]+)\s*,\s*([^)]+)\s*\)/g, 
+        fixedCode = fixedCode.replace(/sprintf\s*\(\s*([^,]+)\s*,\s*([^)]+)\s*\)/g,
             'snprintf($1, sizeof($1), $2)');
 
         // Fix strcat
-        fixedCode = fixedCode.replace(/strcat\s*\(\s*([^,]+)\s*,\s*([^)]+)\s*\)/g, 
+        fixedCode = fixedCode.replace(/strcat\s*\(\s*([^,]+)\s*,\s*([^)]+)\s*\)/g,
             'strncat($1, $2, sizeof($1) - strlen($1) - 1)');
 
         // Fix printf format string
@@ -52,7 +52,7 @@ module.exports = async (req, res) => {
         });
 
         // Fix system calls
-        fixedCode = fixedCode.replace(/system\s*\(\s*([^)]+)\s*\)/g, 
+        fixedCode = fixedCode.replace(/system\s*\(\s*([^)]+)\s*\)/g,
             '// system($1); // SECURITY: Removed for safety');
 
         // Add security headers and includes if not present
