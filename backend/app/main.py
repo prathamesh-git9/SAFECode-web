@@ -1,291 +1,316 @@
 """Main FastAPI application for SAFECode-Web backend."""
-
 import sys
 import time
 import logging
-from typing import Optional, List
-from fastapi import FastAPI, HTTPException, Depends, Request, Query
-from fastapi.responses import ORJSONResponse
+import json
+from typing import List, Dict, Optional
+
+from fastapi import FastAPI, HTTPException, Request, Response, Depends, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from .config import get_config, validate_config
 from .models import (
-    ScanRequest, ScanResponse, HealthResponse, AlertsResponse,
-    Finding, ScanSummary, PaginationInfo, RateLimitInfo, TelemetryData
+    ScanRequest, ScanResponse, HealthResponse, 
+    TelemetryData, Alert, AlertsResponse
 )
 from .auth import require_auth, optional_auth
 from .rate_limit import check_rate_limit, add_rate_limit_headers
-from .sast_runner import run_flawfinder_scan
-from .code_fixer import fix_code_with_gpt
-from .suppression import apply_suppression
-from .ai import process_findings_with_ai, is_ai_available
-from .baseline import compare_with_baseline, save_baseline
-from .telemetry import record_scan_metrics, get_current_telemetry, generate_alerts
-from .utils import setup_utf8_encoding, setup_logging, paginate_results, create_summary_stats
+from .telemetry import get_telemetry_collector, generate_alerts
+from .baseline import BaselineManager
+from .utils import as_utf8, setup_utf8, setup_logging
 from .middleware import (
-    get_gzip_middleware, get_cache_middleware, get_utf8_middleware, get_logging_middleware
+    GzipMiddleware, CacheMiddleware, 
+    UTF8SanitizationMiddleware, LoggingMiddleware
 )
 
-
 # Setup UTF-8 encoding
-setup_utf8_encoding()
+setup_utf8()
 
 # Setup logging
-config = get_config()
-setup_logging(config.log_level)
-logger = logging.getLogger(__name__)
+setup_logging()
 
-# Create FastAPI app
+# Get configuration
+config = get_config()
+validation_errors = validate_config(config)
+
+if validation_errors:
+    logging.error(f"Configuration validation failed: {validation_errors}")
+    sys.exit(1)
+
+# Initialize FastAPI app
 app = FastAPI(
     title="SAFECode-Web Backend",
-    description="Production-ready security code analysis service with Semgrep and false-positive suppression",
-    version="1.0.0",
-    default_response_class=ORJSONResponse
+    description="Security code analysis service with Flawfinder and AI-powered fixes",
+    version="2.0.0"
 )
 
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configure appropriately for production
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # Add custom middleware
-app.middleware("http")(get_logging_middleware())
-app.middleware("http")(get_utf8_middleware())
-app.middleware("http")(get_cache_middleware())
-app.middleware("http")(get_gzip_middleware())
+app.add_middleware(LoggingMiddleware)
+app.add_middleware(UTF8SanitizationMiddleware)
+app.add_middleware(CacheMiddleware)
+app.add_middleware(GzipMiddleware)
 
+# Initialize components
+telemetry = get_telemetry_collector()
+baseline_manager = BaselineManager()
+
+# Conditional analyzer import
+if config.analyzer == "flawfinder":
+    from .flawfinder_runner import analyze as run_analyzer
+    analyzer_name = "flawfinder"
+else:
+    from .semgrep_runner import analyze as run_analyzer
+    analyzer_name = "semgrep"
+
+logger = logging.getLogger(__name__)
 
 @app.on_event("startup")
 async def startup_event():
     """Application startup event."""
-    logger.info("Starting SAFECode-Web Backend...")
+    logger.info(f"SAFECode-Web backend starting with analyzer: {analyzer_name}")
     
-    # Validate configuration
-    validation = validate_config()
-    if not validation["valid"]:
-        logger.error(f"Configuration validation failed: {validation['issues']}")
-        sys.exit(1)
-    
-    # Check Flawfinder availability
-    try:
-        from .sast_runner import FlawfinderRunner
+    # Check analyzer availability
+    if analyzer_name == "flawfinder":
+        from .flawfinder_runner import FlawfinderRunner
         runner = FlawfinderRunner()
-        if runner.check_availability():
-            logger.info("Flawfinder available for C code analysis")
-        else:
+        if not runner.check_availability():
             logger.warning("Flawfinder not available - install with: pip install flawfinder")
-    except Exception as e:
-        logger.warning(f"Flawfinder check failed: {e}")
-    
-    # Check AI availability
-    if is_ai_available():
-        logger.info("AI processing enabled")
     else:
-        logger.info("AI processing disabled")
+        from .semgrep_runner import SemgrepRunner
+        runner = SemgrepRunner()
+        if not runner.check_availability():
+            logger.warning("Semgrep not available - install with: pip install semgrep")
     
-    logger.info("SAFECode-Web Backend started successfully")
+    logger.info("SAFECode-Web backend started successfully")
 
-
-@app.get("/health", response_model=HealthResponse)
-async def health_check():
-    """Health check endpoint."""
-    status = "healthy"
-    sast_version = None
-    
-    try:
-        from .sast_runner import FlawfinderRunner
-        runner = FlawfinderRunner()
-        if runner.check_availability():
-            sast_version = "Flawfinder 2.0.19"
-        else:
-            status = "degraded"
-    except Exception:
-        status = "degraded"
-    
-    return HealthResponse(
-        status=status,
-        semgrep_version=sast_version
-    )
-
-
-@app.get("/metrics", response_model=TelemetryData)
-async def get_metrics():
-    """Get telemetry metrics."""
-    return get_current_telemetry()
-
-
-@app.get("/alerts", response_model=AlertsResponse)
-async def get_alerts():
-    """Get security alerts."""
-    alerts = generate_alerts()
-    return AlertsResponse(
-        alerts=alerts,
-        total=len(alerts)
-    )
-
-
-@app.post("/scan", response_model=ScanResponse)
+@app.post("/scan")
 async def scan_code(
     request: ScanRequest,
     req: Request,
-    limit: int = Query(default=None, description="Maximum findings to return"),
-    offset: int = Query(default=0, description="Offset for pagination"),
-    repo: Optional[str] = Query(default=None, description="Repository name for baseline comparison"),
-    branch: Optional[str] = Query(default=None, description="Branch name for baseline comparison")
+    limit: int = Query(default=config.safe_max_findings_response, le=config.safe_max_findings_response),
+    offset: int = Query(default=0, ge=0),
+    auth: Optional[str] = Depends(optional_auth)
 ):
     """
-    Scan code for security vulnerabilities.
+    Scan code for security vulnerabilities with suppression and pagination.
     
-    This endpoint applies false-positive suppression and returns paginated results.
+    This endpoint applies false-positive suppression rules and returns paginated results.
     """
     start_time = time.time()
-    
-    # Check rate limit
     rate_limit_info = check_rate_limit(req)
     
-    # Get configuration
-    config = get_config()
-    
-    # Set default limit if not provided
-    if limit is None:
-        limit = config.safe_max_findings_response
-    
-    # Validate limit
-    if limit > config.safe_max_findings_response:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Limit cannot exceed {config.safe_max_findings_response}"
-        )
-    
     try:
-        # Run Flawfinder scan
-        findings, success = run_flawfinder_scan(
-            request.code,
-            request.filename
-        )
+        # Validate input
+        if not request.code.strip():
+            raise HTTPException(status_code=400, detail="Code cannot be empty")
         
+        if len(request.code) > config.safe_max_inline_code_chars:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Code too long. Maximum {config.safe_max_inline_code_chars} characters allowed"
+            )
+        
+        # Run analyzer
+        findings, success = run_analyzer(request.filename, request.code)
         if not success:
-            raise HTTPException(status_code=500, detail="SAST analysis failed")
+            raise HTTPException(status_code=500, detail="Static analysis failed")
         
-        # Apply AI processing if enabled
-        if is_ai_available():
-            findings = process_findings_with_ai(findings, request.code)
+        # Apply AI post-processing if enabled
+        if config.enable_gpt and config.openai_api_key:
+            from .ai import adjust_findings_with_ai
+            findings = adjust_findings_with_ai(findings, request.code)
         
         # Apply false-positive suppression
-        findings = apply_suppression(findings, request.code)
+        from .suppression import apply_false_positive_suppression
+        findings = apply_false_positive_suppression(findings, request.code)
         
-        # Create summary statistics
-        summary_data = create_summary_stats(findings)
-        summary = ScanSummary(**summary_data)
+        # Apply pagination
+        total_findings = len(findings)
+        paginated_findings = findings[offset:offset + limit]
         
-        # Paginate results
-        paginated = paginate_results(findings, limit, offset)
-        paginated_findings = paginated['results']
-        pagination = paginated['pagination']
+        # Create summary
+        from .utils import create_scan_summary
+        summary = create_scan_summary(findings)
         
-        # Convert to Finding models
-        finding_models = [Finding(**finding) for finding in paginated_findings]
+        # Get baseline comparison
+        baseline = baseline_manager.get_baseline_comparison(
+            request.filename, findings
+        )
         
-        # Compare with baseline if provided
-        baseline = None
-        if repo and branch:
-            baseline = compare_with_baseline(repo, branch, findings)
+        # Update telemetry
+        scan_duration = time.time() - start_time
+        telemetry.record_scan(
+            len(findings),
+            scan_duration,
+            len([f for f in findings if f["status"] == "SUPPRESSED"]),
+            len(paginated_findings) < len(findings)  # truncated
+        )
         
         # Create response
         response = ScanResponse(
-            findings=finding_models,
+            findings=paginated_findings,
             summary=summary,
-            pagination=PaginationInfo(**pagination),
+            pagination={
+                "limit": limit,
+                "offset": offset,
+                "total": total_findings
+            },
             baseline=baseline,
-            rate_limit=RateLimitInfo(**rate_limit_info),
-            telemetry=get_current_telemetry()
+            rate_limit=rate_limit_info,
+            telemetry=telemetry.get_telemetry_data()
         )
         
-        # Record metrics
-        duration = time.time() - start_time
-        suppressions = len([f for f in findings if f.get('status') == 'SUPPRESSED'])
-        record_scan_metrics(duration, findings, suppressions, timeout, truncated)
+        # Add headers
+        response_obj = JSONResponse(content=response.dict())
+        add_rate_limit_headers(response_obj, rate_limit_info)
         
-        # Add rate limit headers
-        add_rate_limit_headers(response, rate_limit_info)
+        if len(paginated_findings) < len(findings):
+            response_obj.headers["X-Truncated"] = "true"
         
-        return response
+        return response_obj
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error in scan: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
-
-@app.post("/scan/raw", response_model=ScanResponse)
+@app.post("/scan/raw")
 async def scan_code_raw(
     request: ScanRequest,
     req: Request,
-    token: str = Depends(require_auth)
+    auth: str = Depends(require_auth)
 ):
     """
-    Scan code for security vulnerabilities (raw results).
+    Raw scan results without suppression or pagination (requires authentication).
     
-    This endpoint requires authentication and returns full results without pagination.
+    This endpoint returns all findings without applying false-positive suppression.
     """
     start_time = time.time()
-    
-    # Check rate limit
     rate_limit_info = check_rate_limit(req)
     
     try:
-        # Run Semgrep scan
-        findings, timeout, truncated = run_semgrep_scan(
-            request.filename,
-            request.code,
-            request.ruleset
-        )
+        # Validate input
+        if not request.code.strip():
+            raise HTTPException(status_code=400, detail="Code cannot be empty")
         
-        # Apply AI processing if enabled
-        if is_ai_available():
-            findings = process_findings_with_ai(findings, request.code)
+        # Run analyzer
+        findings, success = run_analyzer(request.filename, request.code)
+        if not success:
+            raise HTTPException(status_code=500, detail="Static analysis failed")
         
-        # Apply false-positive suppression
-        findings = apply_suppression(findings, request.code)
+        # Create summary
+        from .utils import create_scan_summary
+        summary = create_scan_summary(findings)
         
-        # Create summary statistics
-        summary_data = create_summary_stats(findings)
-        summary = ScanSummary(**summary_data)
-        
-        # Convert to Finding models (no pagination for raw endpoint)
-        finding_models = [Finding(**finding) for finding in findings]
+        # Update telemetry
+        scan_duration = time.time() - start_time
+        telemetry.record_scan(len(findings), scan_duration, 0, False)
         
         # Create response
         response = ScanResponse(
-            findings=finding_models,
+            findings=findings,
             summary=summary,
-            pagination=PaginationInfo(
-                limit=len(findings),
-                offset=0,
-                total=len(findings)
-            ),
+            pagination={
+                "limit": len(findings),
+                "offset": 0,
+                "total": len(findings)
+            },
             baseline=None,
-            rate_limit=RateLimitInfo(**rate_limit_info),
-            telemetry=get_current_telemetry()
+            rate_limit=rate_limit_info,
+            telemetry=telemetry.get_telemetry_data()
         )
         
-        # Record metrics
-        duration = time.time() - start_time
-        suppressions = len([f for f in findings if f.get('status') == 'SUPPRESSED'])
-        record_scan_metrics(duration, findings, suppressions, timeout, truncated)
+        # Add headers
+        response_obj = JSONResponse(content=response.dict())
+        add_rate_limit_headers(response_obj, rate_limit_info)
         
-        # Add rate limit headers
-        add_rate_limit_headers(response, rate_limit_info)
+        return response_obj
         
-        return response
-        
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error in raw scan: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
+@app.get("/health")
+async def health_check():
+    """Health check endpoint."""
+    try:
+        # Check analyzer availability
+        if analyzer_name == "flawfinder":
+            from .flawfinder_runner import FlawfinderRunner
+            runner = FlawfinderRunner()
+            analyzer_available = runner.check_availability()
+            analyzer_version = "Unknown"
+            if analyzer_available:
+                try:
+                    import subprocess
+                    result = subprocess.run(
+                        [config.flawfinder_path, "--version"],
+                        capture_output=True,
+                        text=True,
+                        timeout=5
+                    )
+                    if result.returncode == 0:
+                        analyzer_version = result.stdout.strip()
+                except:
+                    analyzer_version = "Available"
+        else:
+            from .semgrep_runner import SemgrepRunner
+            runner = SemgrepRunner()
+            analyzer_available = runner.check_availability()
+            analyzer_version = "Unknown"
+            if analyzer_available:
+                try:
+                    import subprocess
+                    result = subprocess.run(
+                        ["semgrep", "--version"],
+                        capture_output=True,
+                        text=True,
+                        timeout=5
+                    )
+                    if result.returncode == 0:
+                        analyzer_version = result.stdout.strip()
+                except:
+                    analyzer_version = "Available"
+        
+        return HealthResponse(
+            status="healthy",
+            analyzer=analyzer_name,
+            analyzer_available=analyzer_available,
+            analyzer_version=analyzer_version
+        )
+        
+    except Exception as e:
+        logger.error(f"Health check failed: {e}")
+        return HealthResponse(
+            status="unhealthy",
+            analyzer=analyzer_name,
+            analyzer_available=False,
+            analyzer_version="Unknown"
+        )
+
+@app.get("/metrics")
+async def get_metrics():
+    """Get telemetry metrics."""
+    return telemetry.get_telemetry_data()
+
+@app.get("/alerts")
+async def get_alerts():
+    """Get security alerts based on telemetry thresholds."""
+    alerts = generate_alerts()
+    return AlertsResponse(alerts=alerts)
 
 @app.post("/fix")
 async def fix_code(
@@ -294,26 +319,38 @@ async def fix_code(
 ):
     """
     Fix C code vulnerabilities automatically using GPT.
-    
     This endpoint scans the code for vulnerabilities and returns the fixed version.
     """
     start_time = time.time()
-    
-    # Check rate limit
     rate_limit_info = check_rate_limit(req)
     
     try:
-        # Run Flawfinder scan
-        findings, success = run_flawfinder_scan(
-            request.code,
-            request.filename
-        )
+        # Validate input
+        if not request.code.strip():
+            raise HTTPException(status_code=400, detail="Code cannot be empty")
         
+        if len(request.code) > config.safe_max_inline_code_chars:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Code too long. Maximum {config.safe_max_inline_code_chars} characters allowed"
+            )
+        
+        # Run analyzer
+        findings, success = run_analyzer(request.filename, request.code)
         if not success:
-            raise HTTPException(status_code=500, detail="SAST analysis failed")
+            raise HTTPException(status_code=500, detail="Static analysis failed")
         
-        # Fix code using GPT
-        fixed_code, fix_details = fix_code_with_gpt(request.code, findings)
+        # Apply AI fixes if enabled
+        if config.enable_gpt and config.openai_api_key:
+            from .code_fixer import fix_code_with_gpt
+            fixed_code, fix_details = fix_code_with_gpt(request.code, findings)
+        else:
+            fixed_code = request.code
+            fix_details = []
+        
+        # Update telemetry
+        scan_duration = time.time() - start_time
+        telemetry.record_scan(len(findings), scan_duration, 0, False)
         
         # Create response
         response = {
@@ -326,92 +363,21 @@ async def fix_code(
             "rate_limit": rate_limit_info
         }
         
-        # Add rate limit headers
-        response_obj = Response(content=json.dumps(response), media_type="application/json")
+        response_obj = JSONResponse(content=response)
         add_rate_limit_headers(response_obj, rate_limit_info)
+        return response_obj
         
-        return response
-        
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error in code fix: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
-
-@app.post("/baseline/{repo}/{branch}")
-async def create_baseline(
-    repo: str,
-    branch: str,
-    request: ScanRequest,
-    req: Request,
-    token: str = Depends(require_auth)
-):
-    """
-    Create a baseline from scan results.
-    
-    This endpoint requires authentication.
-    """
-    try:
-        # Run Semgrep scan
-        findings, timeout, truncated = run_semgrep_scan(
-            request.filename,
-            request.code,
-            request.ruleset
-        )
-        
-        # Apply AI processing if enabled
-        if is_ai_available():
-            findings = process_findings_with_ai(findings, request.code)
-        
-        # Apply false-positive suppression
-        findings = apply_suppression(findings, request.code)
-        
-        # Save baseline
-        success = save_baseline(repo, branch, findings)
-        
-        if success:
-            return {"message": f"Baseline created for {repo}/{branch}", "findings_count": len(findings)}
-        else:
-            raise HTTPException(status_code=500, detail="Failed to save baseline")
-            
-    except Exception as e:
-        logger.error(f"Error creating baseline: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
-
-
-@app.get("/")
-async def root():
-    """Root endpoint with API information."""
-    return {
-        "name": "SAFECode-Web Backend",
-        "version": "1.0.0",
-        "description": "Production-ready security code analysis service",
-        "endpoints": {
-            "POST /scan": "Scan code with suppression and pagination",
-            "POST /scan/raw": "Scan code with full results (auth required)",
-            "GET /health": "Health check",
-            "GET /metrics": "Telemetry metrics",
-            "GET /alerts": "Security alerts",
-            "POST /baseline/{repo}/{branch}": "Create baseline (auth required)",
-            "POST /auto-fix": "Auto-fix findings (not implemented)"
-        },
-        "features": {
-            "semgrep_available": is_semgrep_available(),
-            "ai_available": is_ai_available(),
-            "suppression_rules": 8,
-            "rate_limiting": True,
-            "caching": True,
-            "gzip_compression": True
-        }
-    }
-
-
 if __name__ == "__main__":
     import uvicorn
-    
     uvicorn.run(
         "app.main:app",
         host=config.host,
         port=config.port,
-        reload=False,
-        log_level=config.log_level
+        reload=True
     )

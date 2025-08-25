@@ -8,3 +8,4 @@ orjson==3.10.7
 tenacity==8.4.2
 openai==1.40.0
 flawfinder==2.0.19
+python-dotenv==1.0.0
