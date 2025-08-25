@@ -20,8 +20,13 @@
       </div>
       <div class="nav-links">
         <a href="/how-to-use">How to Use</a>
-        <a href="/login">Login</a>
-        <a href="/signup">Sign Up</a>
+        <div class="auth-buttons" id="authButtons">
+          <button class="btn btn-outline" onclick="signInWithGoogle()">Login with Google</button>
+        </div>
+        <div class="user-profile" id="userProfile" style="display: none;">
+          <span id="userName"></span>
+          <button class="btn btn-outline" onclick="signOut()">Sign Out</button>
+        </div>
         <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
       </div>
     </div>
@@ -84,6 +89,12 @@
   <!-- Notification -->
   <div id="notification" class="notification"></div>
 
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+  
+  <!-- Firebase Config -->
+  <script src="firebase-config.js"></script>
   <script src="script.js"></script>
 </body>
 

@@ -1,11 +1,70 @@
 // Theme management
 let currentTheme = localStorage.getItem('theme') || 'light';
 
-// Initialize theme
+// Authentication state
+let currentUser = null;
+
+// Initialize theme and authentication
 document.addEventListener('DOMContentLoaded', function () {
     setTheme(currentTheme);
     setupKeyboardShortcuts();
+    initializeAuth();
 });
+
+// Firebase Authentication Functions
+function initializeAuth() {
+    // Listen for auth state changes
+    auth.onAuthStateChanged(function(user) {
+        if (user) {
+            // User is signed in
+            currentUser = user;
+            updateAuthUI(true);
+            showNotification(`Welcome, ${user.displayName}!`, 'success');
+        } else {
+            // User is signed out
+            currentUser = null;
+            updateAuthUI(false);
+        }
+    });
+}
+
+function updateAuthUI(isSignedIn) {
+    const authButtons = document.getElementById('authButtons');
+    const userProfile = document.getElementById('userProfile');
+    const userName = document.getElementById('userName');
+
+    if (isSignedIn && currentUser) {
+        authButtons.style.display = 'none';
+        userProfile.style.display = 'flex';
+        userName.textContent = currentUser.displayName || currentUser.email;
+    } else {
+        authButtons.style.display = 'flex';
+        userProfile.style.display = 'none';
+    }
+}
+
+function signInWithGoogle() {
+    auth.signInWithPopup(provider)
+        .then((result) => {
+            // Successfully signed in
+            console.log('Signed in successfully');
+        })
+        .catch((error) => {
+            console.error('Sign-in error:', error);
+            showNotification('Sign-in failed. Please try again.', 'error');
+        });
+}
+
+function signOut() {
+    auth.signOut()
+        .then(() => {
+            showNotification('Signed out successfully', 'info');
+        })
+        .catch((error) => {
+            console.error('Sign-out error:', error);
+            showNotification('Sign-out failed. Please try again.', 'error');
+        });
+}
 
 function setTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);

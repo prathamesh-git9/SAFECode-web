@@ -187,7 +187,7 @@ app.post('/api/fix', async (req, res) => {
         if (OPENAI_API_KEY) {
             try {
                 console.log(`[${VERSION}] Attempting GPT fix...`);
-                
+
                 const gptResponse = await axios.post('https://api.openai.com/v1/chat/completions', {
                     model: 'gpt-3.5-turbo',
                     messages: [
@@ -302,7 +302,23 @@ app.get('/api/health', (req, res) => {
         status: 'ok', 
         message: 'SAFECode API is running', 
         version: VERSION,
-        gpt_available: !!OPENAI_API_KEY
+        gpt_available: !!OPENAI_API_KEY,
+        features: {
+            authentication: true,
+            gpt_integration: !!OPENAI_API_KEY,
+            file_upload: true,
+            export_reports: true
+        }
+    });
+});
+
+// Authentication status endpoint
+app.get('/api/auth/status', (req, res) => {
+    // This would typically verify Firebase tokens
+    // For now, we'll return a simple status
+    res.json({ 
+        authenticated: false,
+        message: 'Authentication status endpoint'
     });
 });
 
