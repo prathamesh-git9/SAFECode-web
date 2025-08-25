@@ -443,11 +443,59 @@ HTML_TEMPLATE = """
             color: black;
         }
         
-        .notification.info {
-            background-color: var(--text-muted);
-        }
-        
-        @media (max-width: 1024px) {
+                 .notification.info {
+             background-color: var(--text-muted);
+         }
+         
+         .file-input-wrapper {
+             position: relative;
+             width: 100%;
+         }
+         
+         .file-input {
+             position: absolute;
+             opacity: 0;
+             width: 100%;
+             height: 100%;
+             cursor: pointer;
+             z-index: 2;
+         }
+         
+         .file-input-label {
+             display: flex;
+             align-items: center;
+             gap: 10px;
+             padding: 12px 16px;
+             background-color: var(--bg-primary);
+             border: 2px dashed var(--border-color);
+             border-radius: 8px;
+             cursor: pointer;
+             transition: all 0.2s ease;
+             color: var(--text-secondary);
+             font-size: 14px;
+             font-weight: 500;
+         }
+         
+         .file-input-label:hover {
+             border-color: var(--accent-color);
+             background-color: var(--bg-secondary);
+             color: var(--text-primary);
+         }
+         
+         .file-input-icon {
+             font-size: 1.2rem;
+         }
+         
+         .file-input-text {
+             flex: 1;
+         }
+         
+         .file-input:focus + .file-input-label {
+             border-color: var(--accent-color);
+             box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+         }
+         
+         @media (max-width: 1024px) {
             .findings-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
@@ -531,18 +579,21 @@ int main() {
                         </div>
                         <div class="form-group">
                             <label for="fileInput">Or Upload a File</label>
-                            <div style="display: flex; gap: 10px; align-items: center;">
-                                <input type="file" id="fileInput" accept=".c,.cpp,.h,.hpp,.cc,.cxx" style="flex: 1; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary); color: var(--text-primary);">
-                                <button class="btn" onclick="loadFile()" style="flex-shrink: 0;">Load File</button>
+                            <div class="file-input-wrapper">
+                                <input type="file" id="fileInput" accept=".c,.cpp,.h,.hpp,.cc,.cxx" class="file-input">
+                                <label for="fileInput" class="file-input-label">
+                                    <span class="file-input-icon">📁</span>
+                                    <span class="file-input-text">Choose C/C++ file</span>
+                                </label>
                             </div>
                         </div>
                         <div class="button-group">
                             <button class="btn btn-primary" onclick="scanCode()">Scan for Vulnerabilities</button>
                             <button class="btn btn-primary" id="fixBtn" onclick="autoFixCode()" style="display: none;">Fix Code</button>
                         </div>
-                        <div style="margin-top: 10px; font-size: 0.8rem; color: var(--text-muted);">
-                            <strong>Keyboard Shortcuts:</strong> Ctrl+Enter (Scan) | Ctrl+Shift+F (Fix) | Ctrl+K (Clear) | Ctrl+O (Load File)
-                        </div>
+                                                 <div style="margin-top: 10px; font-size: 0.8rem; color: var(--text-muted);">
+                             <strong>Keyboard Shortcuts:</strong> Ctrl+Enter (Scan) | Ctrl+Shift+F (Fix) | Ctrl+K (Clear) | Ctrl+O (Choose File)
+                         </div>
                     </div>
                     <div class="code-output" id="codeOutput">
                         <h3>Fixed Code</h3>
