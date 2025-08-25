@@ -15,7 +15,7 @@ app = Flask(__name__)
 BACKEND_URL = "http://localhost:8002"
 API_TOKEN = "test-token"  # Default token from backend
 
-# HTML template for the web interface with auto-fix
+# HTML template for the web interface with auto-fix - StealthWriter.ai inspired design
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="en">
@@ -33,64 +33,56 @@ HTML_TEMPLATE = """
         :root {
             --bg-primary: #ffffff;
             --bg-secondary: #f8f9fa;
-            --bg-tertiary: #ffffff;
             --text-primary: #000000;
             --text-secondary: #333333;
             --text-muted: #666666;
             --border-color: #e0e0e0;
             --accent-color: #000000;
-            --success-color: #00cc00;
-            --error-color: #ff4444;
-            --warning-color: #ff8800;
-            --info-color: #ffcc00;
-            --export-color: #4CAF50;
-            --shadow-light: 0 1px 3px rgba(0, 0, 0, 0.1);
-            --shadow-medium: 0 2px 6px rgba(0, 0, 0, 0.15);
+            --success-color: #28a745;
+            --error-color: #dc3545;
+            --warning-color: #ffc107;
+            --export-color: #007bff;
         }
         
         [data-theme="dark"] {
             --bg-primary: #000000;
             --bg-secondary: #111111;
-            --bg-tertiary: #000000;
             --text-primary: #ffffff;
             --text-secondary: #cccccc;
             --text-muted: #888888;
             --border-color: #333333;
             --accent-color: #ffffff;
-            --shadow-light: 0 1px 3px rgba(255, 255, 255, 0.1);
-            --shadow-medium: 0 2px 6px rgba(255, 255, 255, 0.15);
         }
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background-color: var(--bg-primary);
             color: var(--text-primary);
-            min-height: 100vh;
             line-height: 1.6;
+            font-size: 16px;
         }
         
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 40px 20px;
+            padding: 20px;
         }
         
         .header {
             text-align: center;
-            margin-bottom: 60px;
+            margin-bottom: 40px;
             position: relative;
         }
         
         .header h1 {
-            font-size: 3.5rem;
+            font-size: 2.5rem;
             font-weight: 700;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
             color: var(--text-primary);
-            letter-spacing: -2px;
         }
         
         .header p {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             color: var(--text-muted);
             max-width: 600px;
             margin: 0 auto;
@@ -102,36 +94,29 @@ HTML_TEMPLATE = """
             right: 0;
             background: none;
             border: 1px solid var(--border-color);
-            border-radius: 50px;
-            padding: 8px 16px;
-            color: var(--text-primary);
+            border-radius: 6px;
+            padding: 8px 12px;
+            color: var(--text-secondary);
             cursor: pointer;
             font-size: 0.9rem;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
         }
         
         .theme-toggle:hover {
             background-color: var(--bg-secondary);
+            color: var(--text-primary);
         }
         
         .main-content {
             display: flex;
             flex-direction: column;
-            gap: 40px;
-            margin-bottom: 40px;
+            gap: 30px;
         }
         
         .input-section {
             background-color: var(--bg-secondary);
             border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 30px;
-            box-shadow: var(--shadow-medium);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 25px;
         }
         
         .code-input-container {
@@ -142,154 +127,110 @@ HTML_TEMPLATE = """
         }
         
         .code-input {
-            background-color: var(--bg-secondary);
+            background-color: var(--bg-primary);
             border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 30px;
-            box-shadow: var(--shadow-light);
-            backdrop-filter: blur(5px);
+            border-radius: 8px;
+            padding: 20px;
         }
         
         .code-output {
-            background-color: var(--bg-secondary);
+            background-color: var(--bg-primary);
             border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 30px;
+            border-radius: 8px;
+            padding: 20px;
             display: none;
-            box-shadow: var(--shadow-light);
-            backdrop-filter: blur(5px);
         }
         
         .output-section {
             background-color: var(--bg-secondary);
             border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 30px;
-            box-shadow: var(--shadow-medium);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 25px;
         }
         
         .section-title {
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             font-weight: 600;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             color: var(--text-primary);
         }
         
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
         
         label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 5px;
             font-weight: 500;
             color: var(--text-secondary);
             font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
         
         textarea {
             width: 100%;
-            padding: 16px;
-            background-color: var(--bg-tertiary);
+            padding: 12px;
+            background-color: var(--bg-primary);
             border: 1px solid var(--border-color);
-            border-radius: 12px;
+            border-radius: 6px;
             font-size: 14px;
             font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
             color: var(--text-primary);
-            transition: all 0.3s ease;
-            min-height: 500px;
+            min-height: 400px;
             resize: vertical;
             line-height: 1.5;
-            box-shadow: var(--shadow-light);
-            backdrop-filter: blur(5px);
         }
         
         textarea:focus {
             outline: none;
             border-color: var(--accent-color);
-            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1), var(--shadow-medium);
-            transform: scale(1.01);
         }
         
         .button-group {
             display: flex;
-            gap: 12px;
-            margin-top: 20px;
+            gap: 10px;
+            margin-top: 15px;
         }
         
         .btn {
-            padding: 14px 24px;
-            border: none;
-            border-radius: 12px;
+            padding: 10px 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
             font-size: 14px;
-            font-weight: 600;
+            font-weight: 500;
             cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
             flex: 1;
-            box-shadow: var(--shadow-light);
-            position: relative;
-            overflow: hidden;
         }
         
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: left 0.5s;
-        }
-        
-        .btn:hover::before {
-            left: 100%;
+        .btn:hover {
+            background-color: var(--bg-secondary);
         }
         
         .btn-primary {
-            background: var(--gradient-primary);
-            color: #ffffff;
-            box-shadow: var(--shadow-medium);
+            background-color: var(--text-primary);
+            color: var(--bg-primary);
+            border-color: var(--text-primary);
         }
         
         .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-heavy);
-        }
-        
-        .btn-secondary {
-            background-color: var(--border-color);
-            color: var(--text-primary);
-            box-shadow: var(--shadow-light);
-        }
-        
-        .btn-secondary:hover {
-            background-color: var(--text-muted);
-            transform: translateY(-1px);
-            box-shadow: var(--shadow-medium);
+            opacity: 0.9;
         }
         
         .btn-export {
-            background: var(--gradient-secondary);
-            color: #ffffff;
-            box-shadow: var(--shadow-medium);
+            background-color: var(--export-color);
+            color: white;
+            border-color: var(--export-color);
         }
         
         .btn-export:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-heavy);
+            opacity: 0.9;
         }
         
         .btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
-            transform: none;
         }
         
         .loading {
@@ -299,11 +240,11 @@ HTML_TEMPLATE = """
         }
         
         .spinner {
-            border: 3px solid var(--border-color);
-            border-top: 3px solid var(--accent-color);
+            border: 2px solid var(--border-color);
+            border-top: 2px solid var(--accent-color);
             border-radius: 50%;
-            width: 30px;
-            height: 30px;
+            width: 20px;
+            height: 20px;
             animation: spin 1s linear infinite;
             margin: 0 auto 10px;
         }
@@ -313,86 +254,29 @@ HTML_TEMPLATE = """
             100% { transform: rotate(360deg); }
         }
         
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        
-        @keyframes slideOut {
-            from { transform: translateX(0); opacity: 1; }
-            to { transform: translateX(100%); opacity: 0; }
-        }
-        
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-        
         .results {
             display: none;
             margin-top: 20px;
-            animation: fadeIn 0.5s ease-out;
         }
-        
-        .finding {
-            animation: fadeIn 0.3s ease-out;
-        }
-        
-        .finding:nth-child(1) { animation-delay: 0.1s; }
-        .finding:nth-child(2) { animation-delay: 0.2s; }
-        .finding:nth-child(3) { animation-delay: 0.3s; }
-        .finding:nth-child(4) { animation-delay: 0.4s; }
-        .finding:nth-child(5) { animation-delay: 0.5s; }
-        .finding:nth-child(6) { animation-delay: 0.6s; }
         
         .summary {
-            background-color: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 20px;
             margin-bottom: 20px;
-            box-shadow: var(--shadow-light);
-            backdrop-filter: blur(5px);
         }
         
         .summary h3 {
             color: var(--text-primary);
-            margin-bottom: 15px;
+            margin-bottom: 10px;
             font-size: 1.1rem;
-            background: var(--gradient-primary);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
         }
         
-        .summary-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-            gap: 12px;
-        }
-        
-        .stat {
-            text-align: center;
-            padding: 15px;
-            background-color: var(--bg-secondary);
-            border-radius: 10px;
-            box-shadow: var(--shadow-light);
-            transition: all 0.3s ease;
-        }
-        
-        .stat:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-medium);
+        .stat-item {
+            display: inline-block;
+            margin-right: 20px;
+            margin-bottom: 10px;
         }
         
         .stat-number {
-            font-size: 1.8rem;
+            font-size: 1.5rem;
             font-weight: 700;
             color: var(--text-primary);
             display: block;
@@ -401,8 +285,6 @@ HTML_TEMPLATE = """
         .stat-label {
             font-size: 0.8rem;
             color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
         
         .findings {
@@ -411,184 +293,107 @@ HTML_TEMPLATE = """
         
         .findings h3 {
             color: var(--text-primary);
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             font-size: 1.1rem;
         }
         
         .findings-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
+            gap: 20px;
+            margin-top: 20px;
         }
         
         .finding {
-            background-color: var(--bg-tertiary);
+            background-color: var(--bg-primary);
             border: 1px solid var(--border-color);
-            border-radius: 12px;
+            border-radius: 8px;
             padding: 15px;
-            transition: all 0.3s ease;
-            box-shadow: var(--shadow-light);
-            backdrop-filter: blur(5px);
-        }
-        
-        .finding:hover {
-            transform: translateY(-3px);
-            box-shadow: var(--shadow-heavy);
-        }
-        
-        .finding-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 8px;
-            gap: 8px;
         }
         
         .finding-title {
             font-weight: 600;
             color: var(--text-primary);
-            font-size: 0.85rem;
-            line-height: 1.2;
-            flex: 1;
+            margin-bottom: 8px;
         }
         
         .severity {
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 0.65rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            white-space: nowrap;
-            flex-shrink: 0;
-            box-shadow: var(--shadow-light);
-            backdrop-filter: blur(5px);
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            margin-bottom: 8px;
+            display: inline-block;
         }
         
         .severity.critical {
-            background: linear-gradient(135deg, #ff4444, #cc0000);
-            color: #ffffff;
+            background-color: var(--error-color);
+            color: white;
         }
         
         .severity.high {
-            background: linear-gradient(135deg, #ff8800, #cc6600);
-            color: #ffffff;
+            background-color: var(--warning-color);
+            color: black;
         }
         
         .severity.medium {
-            background: linear-gradient(135deg, #ffcc00, #cc9900);
-            color: #000000;
+            background-color: #ffc107;
+            color: black;
         }
         
         .severity.low {
-            background: linear-gradient(135deg, #00cc00, #009900);
-            color: #ffffff;
+            background-color: var(--success-color);
+            color: white;
         }
         
         .finding-details {
             color: var(--text-secondary);
-            font-size: 0.75rem;
-            margin-bottom: 8px;
-            line-height: 1.3;
-        }
-        
-        .finding-snippet {
-            background-color: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 10px;
-            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
-            font-size: 0.7rem;
-            color: var(--text-primary);
-            overflow-x: auto;
-            max-height: 100px;
-            overflow-y: auto;
-        }
-        
-        .fix-results {
-            display: none;
-            margin-top: 20px;
-        }
-        
-        .code-comparison {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-top: 20px;
-        }
-        
-        .code-block {
-            background-color: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 20px;
-        }
-        
-        .code-block h4 {
-            color: var(--text-primary);
-            margin-bottom: 15px;
-            font-size: 1rem;
+            font-size: 0.8rem;
+            line-height: 1.4;
         }
         
         .code-content {
             background-color: var(--bg-secondary);
             border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 15px;
+            border-radius: 6px;
+            padding: 12px;
             font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             color: var(--text-primary);
             white-space: pre-wrap;
             overflow-x: auto;
-            max-height: 500px;
+            max-height: 400px;
             overflow-y: auto;
-            min-height: 500px;
-            box-shadow: var(--shadow-light);
-            backdrop-filter: blur(5px);
+            min-height: 400px;
         }
         
-        .vulnerable-line {
-            background-color: rgba(255, 68, 68, 0.2);
-            border-left: 3px solid var(--error-color);
-            padding-left: 10px;
-            margin: 2px 0;
-        }
-        
-        .safe-line {
-            background-color: rgba(0, 204, 0, 0.1);
-            border-left: 3px solid var(--success-color);
-            padding-left: 10px;
-            margin: 2px 0;
-        }
-        
-        .status-bar {
+        .notification {
             position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background-color: var(--bg-primary);
-            border-top: 1px solid var(--border-color);
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.9rem;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 6px;
+            color: white;
+            font-weight: 500;
+            z-index: 10000;
+            max-width: 300px;
         }
         
-        .status-left {
-            color: var(--text-muted);
+        .notification.success {
+            background-color: var(--success-color);
         }
         
-        .status-right {
-            color: var(--text-primary);
-            font-weight: 600;
+        .notification.error {
+            background-color: var(--error-color);
         }
         
-        .status-online {
-            color: var(--success-color);
+        .notification.warning {
+            background-color: var(--warning-color);
+            color: black;
         }
         
-        .status-offline {
-            color: var(--error-color);
+        .notification.info {
+            background-color: var(--text-muted);
         }
         
         @media (max-width: 1024px) {
@@ -598,21 +403,12 @@ HTML_TEMPLATE = """
         }
         
         @media (max-width: 768px) {
-            .main-content {
-                grid-template-columns: 1fr;
-                gap: 20px;
-            }
-            
             .code-input-container {
                 grid-template-columns: 1fr;
             }
             
             .header h1 {
-                font-size: 2.5rem;
-            }
-            
-            .code-comparison {
-                grid-template-columns: 1fr;
+                font-size: 2rem;
             }
             
             .button-group {
@@ -649,7 +445,7 @@ HTML_TEMPLATE = """
                     <div class="code-input">
                         <div class="form-group">
                             <label for="code">C/C++ Code</label>
-                            <button class="btn btn-secondary" onclick="clearCode()" style="margin-bottom: 10px; width: 100%;">Clear</button>
+                            <button class="btn" onclick="clearCode()" style="margin-bottom: 10px; width: 100%;">Clear</button>
                             <textarea id="code" placeholder="Paste your C/C++ code here...">#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -673,12 +469,12 @@ int main() {
                         <div class="form-group">
                             <label for="fileInput">Or Upload a File</label>
                             <div style="display: flex; gap: 10px; align-items: center;">
-                                <input type="file" id="fileInput" accept=".c,.cpp,.h,.hpp,.cc,.cxx" style="flex: 1; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-tertiary); color: var(--text-primary);">
-                                <button class="btn btn-secondary" onclick="loadFile()" style="flex-shrink: 0;">📁 Load File</button>
+                                <input type="file" id="fileInput" accept=".c,.cpp,.h,.hpp,.cc,.cxx" style="flex: 1; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary); color: var(--text-primary);">
+                                <button class="btn" onclick="loadFile()" style="flex-shrink: 0;">Load File</button>
                             </div>
                         </div>
                         <div class="button-group">
-                            <button class="btn btn-primary" onclick="scanCode()">scan for vulnerabilities</button>
+                            <button class="btn btn-primary" onclick="scanCode()">Scan for Vulnerabilities</button>
                             <button class="btn btn-primary" id="fixBtn" onclick="autoFixCode()" style="display: none;">Fix Code</button>
                         </div>
                         <div style="margin-top: 10px; font-size: 0.8rem; color: var(--text-muted);">
@@ -688,11 +484,11 @@ int main() {
                     <div class="code-output" id="codeOutput">
                         <h3>Fixed Code</h3>
                         <button class="btn btn-export" id="exportBtn" onclick="exportReport()" style="display: none; margin-bottom: 15px; width: 100%;">
-                            📄 Export Report
+                            Export Report
                         </button>
                         <div class="code-content" id="fixedCodeContent"></div>
-                        <button class="btn btn-secondary" id="copyBtn" onclick="copyFixedCode()" style="display: none; margin-top: 10px;">
-                            📋 Copy Fixed Code
+                        <button class="btn" id="copyBtn" onclick="copyFixedCode()" style="display: none; margin-top: 10px;">
+                            Copy Fixed Code
                         </button>
                     </div>
                 </div>
@@ -712,23 +508,11 @@ int main() {
             </div>
         </div>
     </div>
-    
-    <div class="status-bar">
-        <div class="status-left">
-            Powered by Advanced AI Analysis | Version 5.1
-        </div>
-        <div class="status-right">
-            Backend: <span id="backendStatus" class="status-offline">🔴 Offline</span>
-        </div>
-    </div>
 
     <script>
         // Theme management
-        let currentTheme = localStorage.getItem('theme') || 'dark';
-        
         function setTheme(theme) {
             document.documentElement.setAttribute('data-theme', theme);
-            currentTheme = theme;
             localStorage.setItem('theme', theme);
             
             const themeIcon = document.getElementById('theme-icon');
@@ -744,12 +528,13 @@ int main() {
         }
         
         function toggleTheme() {
+            const currentTheme = localStorage.getItem('theme') || 'dark';
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
             setTheme(newTheme);
         }
         
         // Initialize theme
-        setTheme(currentTheme);
+        setTheme(localStorage.getItem('theme') || 'dark');
         
         // Add file input change listener
         document.addEventListener('DOMContentLoaded', function() {
@@ -762,45 +547,6 @@ int main() {
                 });
             }
         });
-        
-        // Check backend status on page load
-        window.onload = function() {
-            console.log('🚀 Page loaded, checking backend status...');
-            checkBackendStatus();
-            
-            // Test if buttons are accessible
-            const scanBtn = document.querySelector('button[onclick="scanCode()"]');
-            const clearBtn = document.querySelector('button[onclick="clearCode()"]');
-            const fixBtn = document.getElementById('fixBtn');
-            const exportBtn = document.getElementById('exportBtn');
-            
-            console.log('🔍 Button elements found:', {
-                scanBtn: scanBtn ? 'Found' : 'Not found',
-                clearBtn: clearBtn ? 'Found' : 'Not found',
-                fixBtn: fixBtn ? 'Found' : 'Not found',
-                exportBtn: exportBtn ? 'Found' : 'Not found'
-            });
-        };
-        
-        function checkBackendStatus() {
-            fetch('http://localhost:8002/health')
-                .then(response => response.json())
-                .then(data => {
-                    const statusElement = document.getElementById('backendStatus');
-                    if (data.status === 'ok') {
-                        statusElement.textContent = '🟢 Online';
-                        statusElement.className = 'status-online';
-                    } else {
-                        statusElement.textContent = '🔴 Offline';
-                        statusElement.className = 'status-offline';
-                    }
-                })
-                .catch(error => {
-                    const statusElement = document.getElementById('backendStatus');
-                    statusElement.textContent = '🔴 Offline';
-                    statusElement.className = 'status-offline';
-                });
-        }
         
         function scanCode() {
             try {
@@ -855,34 +601,33 @@ int main() {
             const resultsDiv = document.getElementById('results');
             const summaryDiv = document.getElementById('summary');
             const findingsDiv = document.getElementById('findings');
+            const outputSection = document.getElementById('codeOutput');
             
             // Display summary
             const totalFindings = data.findings.length;
-            const activeFindings = data.findings.length; // All findings are active in our system
-            const suppressedFindings = 0; // No suppression in current system
-            const suppressionRate = 0; // No suppression in current system
+            const activeFindings = data.findings.length;
+            const suppressedFindings = 0;
+            const suppressionRate = 0;
             
             console.log('📈 Summary stats:', {totalFindings, activeFindings, suppressedFindings, suppressionRate});
             
             summaryDiv.innerHTML = `
                 <h3>Scan Summary</h3>
-                <div class="summary-stats">
-                    <div class="stat">
-                        <span class="stat-number">${totalFindings}</span>
-                        <span class="stat-label">Total Findings</span>
-                    </div>
-                    <div class="stat">
-                        <span class="stat-number">${activeFindings}</span>
-                        <span class="stat-label">Active Issues</span>
-                    </div>
-                    <div class="stat">
-                        <span class="stat-number">${suppressedFindings}</span>
-                        <span class="stat-label">Suppressed</span>
-                    </div>
-                    <div class="stat">
-                        <span class="stat-number">${suppressionRate}%</span>
-                        <span class="stat-label">Suppression Rate</span>
-                    </div>
+                <div class="stat-item">
+                    <span class="stat-number">${totalFindings}</span>
+                    <span class="stat-label">Total Findings</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">${activeFindings}</span>
+                    <span class="stat-label">Active Issues</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">${suppressedFindings}</span>
+                    <span class="stat-label">Suppressed</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">${suppressionRate}%</span>
+                    <span class="stat-label">Suppression Rate</span>
                 </div>
             `;
             
@@ -897,15 +642,13 @@ int main() {
                     const severityClass = finding.severity.toLowerCase();
                     findingsDiv.innerHTML += `
                         <div class="finding">
-                            <div class="finding-header">
-                                <div class="finding-title">${finding.title}</div>
-                                <span class="severity ${severityClass}">${finding.severity}</span>
-                            </div>
+                            <div class="finding-title">${finding.title}</div>
+                            <span class="severity ${severityClass}">${finding.severity}</span>
                             <div class="finding-details">
                                 <strong>CWE:</strong> ${finding.cwe_id}<br>
-                                <strong>Line:</strong> ${finding.line}
+                                <strong>Line:</strong> ${finding.line}<br>
+                                ${finding.snippet}
                             </div>
-                            <div class="finding-snippet">${finding.snippet}</div>
                         </div>
                     `;
                 });
@@ -913,6 +656,7 @@ int main() {
             }
             
             resultsDiv.style.display = 'block';
+            outputSection.style.display = 'block';
             console.log('✅ Results displayed');
             
             // Show fix button if there are findings
@@ -1005,7 +749,7 @@ int main() {
             const exportBtn = document.getElementById('exportBtn');
             
             codeOutputDiv.style.display = 'block';
-            fixedCodeContentDiv.innerHTML = escapeHtml(data.fixed_code);
+            fixedCodeContentDiv.textContent = data.fixed_code;
             copyBtn.style.display = 'block';
             exportBtn.style.display = 'block';
         }
@@ -1014,7 +758,7 @@ int main() {
             try {
                 const fixedCode = document.getElementById('fixedCodeContent').textContent;
                 navigator.clipboard.writeText(fixedCode).then(() => {
-                    showNotification('✅ Fixed code copied to clipboard!', 'success');
+                    showNotification('Fixed code copied to clipboard!', 'success');
                 }).catch(() => {
                     // Fallback for older browsers
                     const textArea = document.createElement('textarea');
@@ -1023,18 +767,12 @@ int main() {
                     textArea.select();
                     document.execCommand('copy');
                     document.body.removeChild(textArea);
-                    showNotification('✅ Fixed code copied to clipboard!', 'success');
+                    showNotification('Fixed code copied to clipboard!', 'success');
                 });
             } catch (error) {
                 console.error('❌ Copy error:', error);
-                showNotification('❌ Failed to copy code', 'error');
+                showNotification('Failed to copy code', 'error');
             }
-        }
-        
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
         }
         
         function clearCode() {
@@ -1059,7 +797,7 @@ int main() {
                 const file = fileInput.files[0];
                 
                 if (!file) {
-                    showNotification('❌ Please select a file first', 'error');
+                    showNotification('Please select a file first', 'error');
                     return;
                 }
                 
@@ -1068,7 +806,7 @@ int main() {
                 const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
                 
                 if (!allowedExtensions.includes(fileExtension)) {
-                    showNotification('❌ Please select a valid C/C++ file (.c, .cpp, .h, .hpp, .cc, .cxx)', 'error');
+                    showNotification('Please select a valid C/C++ file (.c, .cpp, .h, .hpp, .cc, .cxx)', 'error');
                     return;
                 }
                 
@@ -1076,19 +814,19 @@ int main() {
                 reader.onload = function(e) {
                     const content = e.target.result;
                     document.getElementById('code').value = content;
-                    showNotification(`✅ File "${file.name}" loaded successfully!`, 'success');
+                    showNotification(`File "${file.name}" loaded successfully!`, 'success');
                     console.log(`📁 File loaded: ${file.name} (${content.length} characters)`);
                 };
                 
                 reader.onerror = function() {
-                    showNotification('❌ Error reading file', 'error');
+                    showNotification('Error reading file', 'error');
                 };
                 
                 reader.readAsText(file);
                 
             } catch (error) {
                 console.error('❌ Load file error:', error);
-                showNotification('❌ Error loading file: ' + error.message, 'error');
+                showNotification('Error loading file: ' + error.message, 'error');
             }
         }
         
@@ -1138,40 +876,10 @@ int main() {
                 a.click();
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
-                showNotification('✅ Report exported successfully!', 'success');
+                showNotification('Report exported successfully!', 'success');
             } catch (error) {
                 console.error('❌ Export error:', error);
-                showNotification('❌ Failed to export report', 'error');
-            }
-        }
-        
-        // Test function for debugging
-        function testButtons() {
-            console.log('🧪 Testing button functionality...');
-            
-            // Test scan button
-            const scanBtn = document.querySelector('button[onclick="scanCode()"]');
-            if (scanBtn) {
-                console.log('✅ Scan button found');
-                scanBtn.click();
-            } else {
-                console.log('❌ Scan button not found');
-            }
-            
-            // Test clear button
-            const clearBtn = document.querySelector('button[onclick="clearCode()"]');
-            if (clearBtn) {
-                console.log('✅ Clear button found');
-            } else {
-                console.log('❌ Clear button not found');
-            }
-            
-            // Test fix button
-            const fixBtn = document.getElementById('fixBtn');
-            if (fixBtn) {
-                console.log('✅ Fix button found');
-            } else {
-                console.log('❌ Fix button not found');
+                showNotification('Failed to export report', 'error');
             }
         }
         
@@ -1180,45 +888,14 @@ int main() {
             const notification = document.createElement('div');
             notification.className = `notification ${type}`;
             notification.textContent = message;
-            notification.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                padding: 12px 20px;
-                border-radius: 8px;
-                color: white;
-                font-weight: 600;
-                z-index: 10000;
-                animation: slideIn 0.3s ease-out;
-                max-width: 300px;
-                word-wrap: break-word;
-            `;
-            
-            // Set background color based on type
-            switch(type) {
-                case 'success':
-                    notification.style.backgroundColor = '#00cc00';
-                    break;
-                case 'error':
-                    notification.style.backgroundColor = '#ff4444';
-                    break;
-                case 'warning':
-                    notification.style.backgroundColor = '#ff8800';
-                    break;
-                default:
-                    notification.style.backgroundColor = '#333333';
-            }
             
             document.body.appendChild(notification);
             
             // Auto remove after 3 seconds
             setTimeout(() => {
-                notification.style.animation = 'slideOut 0.3s ease-in';
-                setTimeout(() => {
-                    if (notification.parentNode) {
-                        notification.parentNode.removeChild(notification);
-                    }
-                }, 300);
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
             }, 3000);
         }
         
@@ -1239,7 +916,7 @@ int main() {
                 if (fixBtn.style.display !== 'none') {
                     autoFixCode();
                 } else {
-                    showNotification('⚠️ No vulnerabilities found to fix', 'warning');
+                    showNotification('No vulnerabilities found to fix', 'warning');
                 }
             }
             
@@ -1257,33 +934,6 @@ int main() {
                 document.getElementById('fileInput').click();
             }
         });
-        
-        // Add CSS animations for notifications
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes slideIn {
-                from {
-                    transform: translateX(100%);
-                    opacity: 0;
-                }
-                to {
-                    transform: translateX(0);
-                    opacity: 1;
-                }
-            }
-            
-            @keyframes slideOut {
-                from {
-                    transform: translateX(0);
-                    opacity: 1;
-                }
-                to {
-                    transform: translateX(100%);
-                    opacity: 0;
-                }
-            }
-        `;
-        document.head.appendChild(style);
     </script>
 </body>
 </html>
