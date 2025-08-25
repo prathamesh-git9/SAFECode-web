@@ -1,23 +1,23 @@
 {
-  "name": "safecode-web",
-  "version": "1.0.0",
-  "description": "Secure Code Analysis Web Application",
-  "main": "index.js",
-  "engines": {
-    "node": "22.x"
-  },
-  "scripts": {
-    "dev": "vercel dev",
-    "build": "echo 'No build step required'",
-    "deploy": "vercel --prod"
-  },
-  "keywords": [
-    "security",
-    "code-analysis",
-    "c",
-    "cpp",
-    "vulnerabilities"
-  ],
-  "author": "SAFECode Team",
-  "license": "MIT"
+    "name": "safecode-web",
+    "version": "1.0.0",
+    "description": "Secure Code Analysis Web Application",
+    "main": "index.js",
+    "engines": {
+        "node": "22.x"
+    },
+    "scripts": {
+        "dev": "echo 'Use vercel dev directly'",
+        "build": "echo 'No build step required'",
+        "deploy": "vercel --prod"
+    },
+    "keywords": [
+        "security",
+        "code-analysis",
+        "c",
+        "cpp",
+        "vulnerabilities"
+    ],
+    "author": "SAFECode Team",
+    "license": "MIT"
 }

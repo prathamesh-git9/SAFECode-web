@@ -16,11 +16,14 @@ module.exports = async (req, res) => {
     try {
         const { code } = req.body;
 
-        console.log('Received scan request with code:', code.substring(0, 100) + '...');
+        console.log('Received scan request with code:', code ? code.substring(0, 100) + '...' : 'No code');
 
         if (!code) {
             return res.status(400).json({ error: 'Code is required' });
         }
+
+        // GPT API Key (you should set this as environment variable in production)
+        const OPENAI_API_KEY = process.env.OPENAI_API_KEY || 'sk-proj-your-api-key-here';
 
         // Mock SAST scanner that identifies common C/C++ vulnerabilities
         const findings = [];
@@ -157,6 +160,6 @@ module.exports = async (req, res) => {
 
     } catch (error) {
         console.error('Scan error:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({ error: 'Internal server error', details: error.message });
     }
-}
+};
