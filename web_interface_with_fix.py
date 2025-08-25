@@ -62,6 +62,57 @@ HTML_TEMPLATE = """
             font-size: 16px;
         }
         
+        .navbar {
+            background-color: var(--bg-primary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+        
+        .logo-icon {
+            font-size: 2rem;
+            color: var(--accent-color);
+        }
+        
+        .nav-menu {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+        
+        .nav-menu-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        
+        .nav-menu-link:hover {
+            color: var(--text-primary);
+        }
+        
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -428,12 +479,26 @@ HTML_TEMPLATE = """
     </style>
 </head>
 <body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">
+                <span class="logo-icon">🔒</span>
+                <span>SAFECode</span>
+            </a>
+            <div class="nav-menu">
+                <a href="/how-to-use" class="nav-menu-link">How to Use</a>
+                <a href="/login" class="nav-menu-link">Login</a>
+                <a href="/signup" class="nav-menu-link">Sign Up</a>
+                <button class="theme-toggle" onclick="toggleTheme()">
+                    <span id="theme-icon">🌙</span>
+                    <span id="theme-text">Dark Mode</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+    
     <div class="container">
         <div class="header">
-            <button class="theme-toggle" onclick="toggleTheme()">
-                <span id="theme-icon">🌙</span>
-                <span id="theme-text">Dark Mode</span>
-            </button>
             <h1>SAFECode-Web</h1>
             <p>AI-Powered Code Security Scanner with Advanced Vulnerability Detection and Auto-Fix</p>
         </div>
@@ -939,12 +1004,728 @@ int main() {
 </html>
 """
 
+# Page templates
+LOGIN_TEMPLATE = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - SAFECode-Web</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --text-primary: #000000;
+            --text-secondary: #333333;
+            --text-muted: #666666;
+            --border-color: #e0e0e0;
+            --accent-color: #000000;
+            --success-color: #28a745;
+            --error-color: #dc3545;
+        }
+        
+        [data-theme="dark"] {
+            --bg-primary: #000000;
+            --bg-secondary: #111111;
+            --text-primary: #ffffff;
+            --text-secondary: #cccccc;
+            --text-muted: #888888;
+            --border-color: #333333;
+            --accent-color: #ffffff;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+        
+        .navbar {
+            background-color: var(--bg-primary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 15px 0;
+        }
+        
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+        
+        .logo-icon {
+            font-size: 2rem;
+            color: var(--accent-color);
+        }
+        
+        .nav-menu {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+        
+        .nav-menu-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        .nav-menu-link:hover {
+            color: var(--text-primary);
+        }
+        
+        .container {
+            max-width: 400px;
+            margin: 100px auto;
+            padding: 20px;
+        }
+        
+        .form-card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 30px;
+        }
+        
+        .form-title {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--text-primary);
+            color: var(--bg-primary);
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            margin-bottom: 15px;
+        }
+        
+        .btn:hover {
+            opacity: 0.9;
+        }
+        
+        .form-footer {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+        
+        .form-footer a {
+            color: var(--accent-color);
+            text-decoration: none;
+        }
+        
+        .form-footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">
+                <span class="logo-icon">🔒</span>
+                <span>SAFECode</span>
+            </a>
+            <div class="nav-menu">
+                <a href="/how-to-use" class="nav-menu-link">How to Use</a>
+                <a href="/login" class="nav-menu-link">Login</a>
+                <a href="/signup" class="nav-menu-link">Sign Up</a>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <div class="form-card">
+            <h2 class="form-title">Login</h2>
+            <form>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <button type="submit" class="btn">Login</button>
+                <div class="form-footer">
+                    Don't have an account? <a href="/signup">Sign up</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
+"""
+
+SIGNUP_TEMPLATE = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - SAFECode-Web</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --text-primary: #000000;
+            --text-secondary: #333333;
+            --text-muted: #666666;
+            --border-color: #e0e0e0;
+            --accent-color: #000000;
+            --success-color: #28a745;
+            --error-color: #dc3545;
+        }
+        
+        [data-theme="dark"] {
+            --bg-primary: #000000;
+            --bg-secondary: #111111;
+            --text-primary: #ffffff;
+            --text-secondary: #cccccc;
+            --text-muted: #888888;
+            --border-color: #333333;
+            --accent-color: #ffffff;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+        
+        .navbar {
+            background-color: var(--bg-primary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 15px 0;
+        }
+        
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+        
+        .logo-icon {
+            font-size: 2rem;
+            color: var(--accent-color);
+        }
+        
+        .nav-menu {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+        
+        .nav-menu-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        .nav-menu-link:hover {
+            color: var(--text-primary);
+        }
+        
+        .container {
+            max-width: 400px;
+            margin: 100px auto;
+            padding: 20px;
+        }
+        
+        .form-card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 30px;
+        }
+        
+        .form-title {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--text-primary);
+            color: var(--bg-primary);
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            margin-bottom: 15px;
+        }
+        
+        .btn:hover {
+            opacity: 0.9;
+        }
+        
+        .form-footer {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+        
+        .form-footer a {
+            color: var(--accent-color);
+            text-decoration: none;
+        }
+        
+        .form-footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">
+                <span class="logo-icon">🔒</span>
+                <span>SAFECode</span>
+            </a>
+            <div class="nav-menu">
+                <a href="/how-to-use" class="nav-menu-link">How to Use</a>
+                <a href="/login" class="nav-menu-link">Login</a>
+                <a href="/signup" class="nav-menu-link">Sign Up</a>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <div class="form-card">
+            <h2 class="form-title">Sign Up</h2>
+            <form>
+                <div class="form-group">
+                    <label for="name">Full Name</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirm-password">Confirm Password</label>
+                    <input type="password" id="confirm-password" name="confirm-password" required>
+                </div>
+                <button type="submit" class="btn">Create Account</button>
+                <div class="form-footer">
+                    Already have an account? <a href="/login">Login</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
+"""
+
+HOW_TO_USE_TEMPLATE = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Use - SAFECode-Web</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --text-primary: #000000;
+            --text-secondary: #333333;
+            --text-muted: #666666;
+            --border-color: #e0e0e0;
+            --accent-color: #000000;
+        }
+        
+        [data-theme="dark"] {
+            --bg-primary: #000000;
+            --bg-secondary: #111111;
+            --text-primary: #ffffff;
+            --text-secondary: #cccccc;
+            --text-muted: #888888;
+            --border-color: #333333;
+            --accent-color: #ffffff;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+        
+        .navbar {
+            background-color: var(--bg-primary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 15px 0;
+        }
+        
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+        
+        .logo-icon {
+            font-size: 2rem;
+            color: var(--accent-color);
+        }
+        
+        .nav-menu {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+        
+        .nav-menu-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        .nav-menu-link:hover {
+            color: var(--text-primary);
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        
+        .content-card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 40px;
+        }
+        
+        .page-title {
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 2rem;
+            font-weight: 600;
+        }
+        
+        .step {
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+        
+        .step-number {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background-color: var(--accent-color);
+            color: var(--bg-primary);
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            font-weight: 600;
+            margin-right: 15px;
+        }
+        
+        .step-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+        
+        .step-description {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+        
+        .code-example {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+        }
+        
+        .keyboard-shortcuts {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+        
+        .shortcut {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .shortcut:last-child {
+            border-bottom: none;
+        }
+        
+        .shortcut-key {
+            font-weight: 600;
+            color: var(--accent-color);
+        }
+        
+        .shortcut-description {
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">
+                <span class="logo-icon">🔒</span>
+                <span>SAFECode</span>
+            </a>
+            <div class="nav-menu">
+                <a href="/how-to-use" class="nav-menu-link">How to Use</a>
+                <a href="/login" class="nav-menu-link">Login</a>
+                <a href="/signup" class="nav-menu-link">Sign Up</a>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <div class="content-card">
+            <h1 class="page-title">How to Use SAFECode-Web</h1>
+            
+            <div class="step">
+                <span class="step-number">1</span>
+                <div class="step-title">Paste Your Code</div>
+                <div class="step-description">
+                    Copy and paste your C/C++ code into the text area on the main page. You can also upload a file using the file input.
+                </div>
+                <div class="code-example">
+// Example C code with vulnerabilities
+#include &lt;stdio.h&gt;
+#include &lt;string.h&gt;
+
+int main() {
+    char buffer[10];
+    char *user_input = "This is a very long string";
+    strcpy(buffer, user_input); // Vulnerable to buffer overflow
+    return 0;
+}
+                </div>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">2</span>
+                <div class="step-title">Scan for Vulnerabilities</div>
+                <div class="step-description">
+                    Click the "Scan for Vulnerabilities" button to analyze your code. The system will detect security issues and display them in a grid layout.
+                </div>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">3</span>
+                <div class="step-title">Review Findings</div>
+                <div class="step-description">
+                    Review the detected vulnerabilities, their severity levels, and the specific lines of code that need attention.
+                </div>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">4</span>
+                <div class="step-title">Auto-Fix with AI</div>
+                <div class="step-description">
+                    Click the "Fix Code" button to automatically fix the vulnerabilities using AI-powered suggestions. The fixed code will appear in the right panel.
+                </div>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">5</span>
+                <div class="step-title">Export and Share</div>
+                <div class="step-description">
+                    Use the "Export Report" button to download a comprehensive HTML report of your scan results and fixes.
+                </div>
+            </div>
+            
+            <div class="keyboard-shortcuts">
+                <h3>Keyboard Shortcuts</h3>
+                <div class="shortcut">
+                    <span class="shortcut-key">Ctrl + Enter</span>
+                    <span class="shortcut-description">Scan for vulnerabilities</span>
+                </div>
+                <div class="shortcut">
+                    <span class="shortcut-key">Ctrl + Shift + F</span>
+                    <span class="shortcut-description">Auto-fix code</span>
+                </div>
+                <div class="shortcut">
+                    <span class="shortcut-key">Ctrl + K</span>
+                    <span class="shortcut-description">Clear code</span>
+                </div>
+                <div class="shortcut">
+                    <span class="shortcut-key">Ctrl + O</span>
+                    <span class="shortcut-description">Load file</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+"""
+
 @app.route('/')
 def index():
     """Main page with the web interface."""
     # Check backend status
     backend_status = "🟢 Online" if check_backend_status() else "🔴 Offline"
     return render_template_string(HTML_TEMPLATE, backend_status=backend_status)
+
+@app.route('/login')
+def login():
+    """Login page."""
+    return render_template_string(LOGIN_TEMPLATE)
+
+@app.route('/signup')
+def signup():
+    """Sign up page."""
+    return render_template_string(SIGNUP_TEMPLATE)
+
+@app.route('/how-to-use')
+def how_to_use():
+    """How to use page."""
+    return render_template_string(HOW_TO_USE_TEMPLATE)
 
 @app.route('/scan', methods=['POST'])
 def scan():
