@@ -1,11 +1,11 @@
 // Firebase configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyBXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-    authDomain: "your-project.firebaseapp.com",
-    projectId: "your-project-id",
-    storageBucket: "your-project.appspot.com",
-    messagingSenderId: "123456789",
-    appId: "1:123456789:web:abcdef123456"
+    apiKey: "AIzaSyD8eJncAhmEfUz-pYbYBljTCl70QclJ-Fo",
+    authDomain: "safe-code-e4295.firebaseapp.com",
+    projectId: "safe-code-e4295",
+    storageBucket: "safe-code-e4295.appspot.com",
+    messagingSenderId: "167858818384",
+    appId: "1:167858818384:web:YOUR_APP_ID"
 };
 
 // Initialize Firebase
