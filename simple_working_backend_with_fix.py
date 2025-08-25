@@ -25,8 +25,11 @@ app.add_middleware(
 )
 
 # GPT Configuration
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "sk-proj-6oyuVG0AvA1uCA07jdTZT3BlbkFJKKRngkffv6gkZbMBLhGl")
+OPENAI_API_KEY = "sk-proj-6oyuVG0AvA1uCA07jdTZT3BlbkFJKKRngkffv6gkZbMBLhGl"
 GPT_MODEL = "gpt-4o-mini"
+
+# Set environment variable for OpenAI
+os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
 
 class ScanRequest(BaseModel):
     filename: str
@@ -191,6 +194,7 @@ FIXED CODE:"""
 
         # Call GPT API with error handling
         try:
+            # Initialize OpenAI client with explicit API key
             client = openai.OpenAI(api_key=OPENAI_API_KEY)
             response = client.chat.completions.create(
                 model=GPT_MODEL,
@@ -213,6 +217,8 @@ FIXED CODE:"""
                 fixed_code = fixed_code[:-3]
             fixed_code = fixed_code.strip()
             
+            print(f"GPT successfully fixed code. Length: {len(fixed_code)}")
+            
         except Exception as gpt_error:
             print(f"GPT API error: {gpt_error}")
             # Fallback: provide a basic fix based on the findings
@@ -223,6 +229,7 @@ FIXED CODE:"""
                 if 'printf' in finding.get('title', '').lower() and 'format string' in finding.get('title', '').lower():
                     # Basic format string fix
                     fixed_code = fixed_code.replace('printf(buffer)', 'printf("%s", buffer)')
+            print("Using fallback pattern-based fixes")
         
         # Create summary of fixes
         fixes_applied = []
@@ -263,6 +270,7 @@ async def health_check():
             max_tokens=5
         )
         gpt_available = True
+        print("GPT API is available")
     except Exception as e:
         print(f"GPT test error: {e}")
         gpt_available = False
