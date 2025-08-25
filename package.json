@@ -4,7 +4,7 @@
   "description": "Secure Code Analysis Web Application",
   "main": "index.js",
   "engines": {
-    "node": "18.x"
+    "node": "22.x"
   },
   "scripts": {
     "dev": "vercel dev",

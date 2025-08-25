@@ -1,13 +1,5 @@
 {
   "version": 2,
-  "functions": {
-    "api/scan.js": {
-      "runtime": "nodejs18.x"
-    },
-    "api/fix.js": {
-      "runtime": "nodejs18.x"
-    }
-  },
   "rewrites": [
     {
       "source": "/api/(.*)",
