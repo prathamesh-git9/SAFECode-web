@@ -6,20 +6,27 @@ let currentUser = null;
 
 // Firebase Authentication Functions
 function initializeAuth() {
+    console.log('Initializing auth...');
+    console.log('window.auth:', window.auth);
+    console.log('window.provider:', window.provider);
+    
     // Listen for auth state changes
     if (window.auth) {
         window.auth.onAuthStateChanged(function (user) {
+            console.log('Auth state changed:', user);
             if (user) {
                 // User is signed in
                 currentUser = user;
                 updateAuthUI(true);
-                showNotification(`Welcome, ${user.displayName}!`, 'success');
+                showNotification(`Welcome, ${user.displayName || user.email}!`, 'success');
             } else {
                 // User is signed out
                 currentUser = null;
                 updateAuthUI(false);
             }
         });
+    } else {
+        console.error('Firebase auth not available');
     }
 }
 
@@ -28,25 +35,58 @@ function updateAuthUI(isSignedIn) {
     const userProfile = document.getElementById('userProfile');
     const userName = document.getElementById('userName');
 
+    if (!authButtons || !userProfile || !userName) {
+        console.error('Auth UI elements not found');
+        return;
+    }
+
     if (isSignedIn && currentUser) {
         authButtons.style.display = 'none';
         userProfile.style.display = 'flex';
         userName.textContent = currentUser.displayName || currentUser.email;
+        console.log('User signed in:', currentUser.displayName || currentUser.email);
     } else {
         authButtons.style.display = 'flex';
         userProfile.style.display = 'none';
+        console.log('User signed out');
     }
 }
 
 function signInWithGoogle() {
+    if (!window.auth || !window.provider) {
+        console.error('Firebase auth not initialized');
+        showNotification('Authentication not ready. Please refresh the page.', 'error');
+        return;
+    }
+
     window.auth.signInWithPopup(window.provider)
         .then((result) => {
             // Successfully signed in
-            console.log('Signed in successfully');
+            console.log('Signed in successfully:', result.user);
+            showNotification('Signed in successfully!', 'success');
         })
         .catch((error) => {
             console.error('Sign-in error:', error);
-            showNotification('Sign-in failed. Please try again.', 'error');
+            
+            // Handle specific error cases
+            let errorMessage = 'Sign-in failed. Please try again.';
+            
+            switch (error.code) {
+                case 'auth/popup-closed-by-user':
+                    errorMessage = 'Sign-in cancelled.';
+                    break;
+                case 'auth/popup-blocked':
+                    errorMessage = 'Popup blocked. Please allow popups for this site.';
+                    break;
+                case 'auth/unauthorized-domain':
+                    errorMessage = 'This domain is not authorized for sign-in.';
+                    break;
+                case 'auth/network-request-failed':
+                    errorMessage = 'Network error. Please check your connection.';
+                    break;
+            }
+            
+            showNotification(errorMessage, 'error');
         });
 }
 
@@ -506,9 +546,9 @@ document.addEventListener('DOMContentLoaded', function () {
     setupKeyboardShortcuts();
     setupFormListeners();
     setupTextareaResize();
-    
-    // Initialize auth after a short delay to ensure Firebase is loaded
+
+    // Initialize auth after a delay to ensure Firebase is loaded
     setTimeout(() => {
         initializeAuth();
-    }, 100);
+    }, 500);
 });

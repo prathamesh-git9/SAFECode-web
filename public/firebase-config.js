@@ -33,3 +33,8 @@ try {
 window.auth = auth;
 window.provider = provider;
 window.analytics = analytics;
+
+// Debug logging
+console.log('Firebase initialized successfully');
+console.log('Auth object:', window.auth);
+console.log('Provider object:', window.provider);
