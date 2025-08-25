@@ -259,15 +259,17 @@ HTML_TEMPLATE = """
             background-color: var(--bg-secondary);
         }
         
-        .btn-primary {
-            background-color: var(--text-primary);
-            color: var(--bg-primary);
-            border-color: var(--text-primary);
-        }
-        
-        .btn-primary:hover {
-            opacity: 0.9;
-        }
+                 .btn-primary {
+             background-color: var(--text-primary);
+             color: var(--bg-primary);
+             border-color: var(--text-primary);
+         }
+         
+         .btn-primary:hover {
+             background-color: var(--text-secondary);
+             border-color: var(--text-secondary);
+             color: var(--bg-primary);
+         }
         
         .btn-export {
             background-color: var(--export-color);
