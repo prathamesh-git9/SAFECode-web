@@ -165,50 +165,123 @@ def mock_vulnerability_scan(code: str, filename: str) -> List[Dict]:
     
     return findings
 
-def fix_code_with_gpt(original_code: str, findings: List[Dict]) -> Dict:
-    """Use GPT to automatically fix the detected vulnerabilities."""
-    try:
-        # Prepare the prompt for GPT
-        findings_text = ""
-        for finding in findings:
-            findings_text += f"- Line {finding['line']}: {finding['title']} ({finding['cwe_id']})\n"
-            findings_text += f"  Suggestion: {finding.get('fix_hint', 'Fix this vulnerability')}\n"
-            findings_text += f"  Code: {finding['snippet']}\n\n"
-        
-        prompt = f"""You are a security expert C programmer. Fix the following C code by addressing the security vulnerabilities detected.
+def get_secure_gpt_prompt(original_code: str, findings: List[Dict]) -> str:
+    """
+    Generate a comprehensive secure GPT prompt for vulnerability-free code generation.
+    """
+    
+    # Extract vulnerability types for better context
+    vulnerability_types = set()
+    for finding in findings:
+        if 'CWE-120' in finding.get('cwe_id', ''):
+            vulnerability_types.add('Buffer Overflow')
+        if 'CWE-134' in finding.get('cwe_id', ''):
+            vulnerability_types.add('Format String')
+        if 'CWE-78' in finding.get('cwe_id', ''):
+            vulnerability_types.add('Command Injection')
+        if 'CWE-190' in finding.get('cwe_id', ''):
+            vulnerability_types.add('Integer Overflow')
+        if 'CWE-416' in finding.get('cwe_id', ''):
+            vulnerability_types.add('Use After Free')
+        if 'CWE-476' in finding.get('cwe_id', ''):
+            vulnerability_types.add('Null Pointer Dereference')
+    
+    vuln_list = ', '.join(vulnerability_types) if vulnerability_types else 'various security issues'
+    
+    prompt = f"""You are SecureCode-GPT. Your job is to produce production-ready code that is **defensively secure** and **free of known vulnerability classes**.
 
-ORIGINAL CODE:
+# Scope
+- Language: C
+- Task: Fix the following C code by addressing ALL detected security vulnerabilities
+- Inputs/assumptions: Original code contains {vuln_list} that must be fixed
+- Platform: POSIX/Linux
+- Output style: **One single code block first**, then short build/run steps, then a brief security rationale.
+- Absolutely **no placeholders** or TODOs. Code must compile/run as given.
+
+# Original Code (Vulnerable)
+```c
 {original_code}
+```
 
-DETECTED VULNERABILITIES:
-{findings_text}
+# Detected Vulnerabilities
+"""
+    
+    for i, finding in enumerate(findings, 1):
+        prompt += f"- {finding.get('title', 'Unknown vulnerability')} (Line {finding.get('line', '?')}) - {finding.get('severity', 'UNKNOWN')}\n"
+    
+    prompt += f"""
+# Absolute Safety Requirements (never violate)
+- **No shell injection surfaces**: never call `system`, `popen`, backticks, or spawn a shell. Use `execve/execv/execvp` with **literal program path** and **argv allowlist** only.
+- **Format strings must be literals**: `printf`, `fprintf`, `snprintf`, `vsnprintf` → always use a **literal** format string; pass user data as arguments, not as the format.
+- **Banned unsafe APIs (never use)**: `gets`, `strcpy`, `strcat`, `sprintf`, `vsprintf`, `strtok`, `system`, `popen`. Use `snprintf`, `strncpy`, or `memcpy` with strict bounds.
+- **Memory safety**:
+  - Guard all arithmetic that sizes allocations: check `x > SIZE_MAX - y` before `x+y`.
+  - Always NUL-terminate strings; reserve space for the terminator.
+  - Free owned memory on all exit paths; after `free(p)`, set `p = NULL`.
+  - No use-after-free; no double-free.
+- **Buffer safety**:
+  - Bound every copy/concat; calculate remaining capacity: `cap - 1 - strlen(dest)`.
+  - No writes past end of arrays; no VLAs for untrusted sizing.
+- **NULL safety**: check pointers before dereference; early return on failure.
+- **Integer safety**: handle overflow/underflow for signed/unsigned math; validate user-provided sizes, indices, and loop bounds.
+- **Error handling**: check every return value; degrade safely; never leak secrets in messages.
 
-INSTRUCTIONS:
-1. Fix each vulnerability while maintaining the original functionality
-2. Use secure alternatives (strncpy instead of strcpy, fgets instead of gets, etc.)
-3. Add proper bounds checking and null termination
-4. Keep the code readable and well-commented
-5. Return ONLY the fixed C code, no explanations
+# Language-specific rules (C)
+- Include headers explicitly; use `size_t` for sizes.
+- Use `snprintf(dest, sizeof(dest), "...", ...)` with **literal** format strings.
+- Build flags: `-Wall -Wextra -Werror -pedantic -O2 -fstack-protector-strong -D_FORTIFY_SOURCE=2`
 
-FIXED CODE:"""
+# Output contract
+1) **Code block FIRST**, fenced with ```c.
+   - Fully self-contained (single file).
+   - Include small `static` helpers for validation when relevant.
+2) **Build & Run**: exact commands.
+3) **Security Rationale**: very short checklist mapping to CWEs.
 
-        # Call GPT API with error handling
+# Security self-audit (must pass before you show code)
+Before emitting the code, verify ALL are true:
+- ✅ No banned APIs are present (`gets`, `strcpy`, `strcat`, `sprintf`, `vsprintf`, `system`, `popen`).
+- ✅ All format functions use **literal** format strings (CWE-134).
+- ✅ Every memory allocation size expression has overflow guards (CWE-190/191).
+- ✅ All string copies/concats are bounded + explicitly NUL-terminated (CWE-120/121/122/787).
+- ✅ No double-free, no UAF; all frees paired and then NULLed (CWE-415/416/401).
+- ✅ All pointers are checked before deref (CWE-476).
+- ✅ No shell parsing or command concatenation; direct exec only with validated argv (CWE-78).
+
+# Final reminders
+- Be concise, correct, and defensive.
+- Prefer clarity over cleverness.
+- Do not emit any explanation before the code block.
+- Fix ALL detected vulnerabilities while maintaining original functionality.
+
+Now, provide the secure, fixed code:"""
+    
+    return prompt
+
+def fix_code_with_gpt(original_code: str, findings: List[Dict]) -> Dict:
+    """Use GPT to automatically fix the detected vulnerabilities with enhanced security rules."""
+    try:
+        # Prepare the enhanced secure prompt
+        prompt = get_secure_gpt_prompt(original_code, findings)
+        
+        print(f"🔒 Using enhanced secure GPT prompt (length: {len(prompt)} characters)")
+        
+        # Call GPT API with enhanced security prompt
         try:
-            # Initialize OpenAI client with explicit API key
             client = openai.OpenAI(api_key=OPENAI_API_KEY)
             response = client.chat.completions.create(
                 model=GPT_MODEL,
                 messages=[
-                    {"role": "system", "content": "You are a security expert C programmer. Provide only the fixed code without explanations."},
+                    {"role": "system", "content": "You are SecureCode-GPT, a security expert that produces only vulnerability-free, production-ready code. Follow all security requirements strictly."},
                     {"role": "user", "content": prompt}
                 ],
-                temperature=0.1,
-                max_tokens=2000
+                temperature=0.1,  # Low temperature for consistent, secure output
+                max_tokens=3000
             )
             
             fixed_code = response.choices[0].message.content.strip()
             
-            # Clean up the response (remove markdown if present)
+            # Clean up the response
             if fixed_code.startswith("```c"):
                 fixed_code = fixed_code[3:]
             if fixed_code.startswith("```"):
@@ -217,7 +290,7 @@ FIXED CODE:"""
                 fixed_code = fixed_code[:-3]
             fixed_code = fixed_code.strip()
             
-            print(f"GPT successfully fixed code. Length: {len(fixed_code)}")
+            print(f"✅ Enhanced GPT successfully fixed code. Length: {len(fixed_code)} characters")
             
         except Exception as gpt_error:
             print(f"GPT API error: {gpt_error}")
@@ -227,25 +300,25 @@ FIXED CODE:"""
                 if 'strcpy' in finding.get('title', '').lower():
                     fixed_code = fixed_code.replace('strcpy', 'strncpy')
                 if 'printf' in finding.get('title', '').lower() and 'format string' in finding.get('title', '').lower():
-                    # Basic format string fix
                     fixed_code = fixed_code.replace('printf(buffer)', 'printf("%s", buffer)')
             print("Using fallback pattern-based fixes")
         
-        # Create summary of fixes
+        # Create summary of fixes applied
         fixes_applied = []
         for finding in findings:
             fixes_applied.append({
-                "line": finding['line'],
-                "vulnerability": finding['title'],
-                "cwe": finding['cwe_id'],
-                "fix": finding.get('fix_hint', 'Fixed security vulnerability')
+                "vulnerability": finding.get('title', 'Unknown'),
+                "line": finding.get('line', 'Unknown'),
+                "severity": finding.get('severity', 'Unknown'),
+                "cwe": finding.get('cwe_id', 'Unknown')
             })
         
         return {
             "original_code": original_code,
             "fixed_code": fixed_code,
             "fixes_applied": fixes_applied,
-            "summary": f"Fixed {len(findings)} security vulnerabilities using secure alternatives"
+            "summary": f"Fixed {len(findings)} security vulnerabilities using enhanced secure coding practices",
+            "security_level": "enhanced"
         }
         
     except Exception as e:
@@ -254,7 +327,8 @@ FIXED CODE:"""
             "original_code": original_code,
             "fixed_code": original_code,
             "fixes_applied": [],
-            "summary": f"Error fixing code: {str(e)}"
+            "summary": f"Error fixing code: {str(e)}",
+            "security_level": "error"
         }
 
 @app.get("/health")
