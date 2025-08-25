@@ -26,79 +26,34 @@ module.exports = async (req, res) => {
 
         let fixedCode = code;
 
-        // GPT API Key (you should set this as environment variable in production)
-        const OPENAI_API_KEY = process.env.OPENAI_API_KEY || 'sk-proj-your-api-key-here';
+        // Simple, reliable fixes
+        // Fix strcpy
+        fixedCode = fixedCode.replace(/strcpy\s*\(\s*([^,]+)\s*,\s*([^)]+)\s*\)/g, 
+            'strncpy($1, $2, sizeof($1) - 1);\n    $1[sizeof($1) - 1] = \'\\0\'');
 
-        // Apply fixes based on findings
-        findings.forEach(finding => {
-            const { cwe, title, evidence } = finding;
+        // Fix gets
+        fixedCode = fixedCode.replace(/gets\s*\(\s*([^)]+)\s*\)/g, 
+            'fgets($1, sizeof($1), stdin)');
 
-            switch (cwe) {
-                case 'CWE-120':
-                    if (title.includes('Buffer Overflow')) {
-                        // Fix strcpy
-                        fixedCode = fixedCode.replace(
-                            /strcpy\s*\(\s*([^,]+)\s*,\s*([^)]+)\s*\)/g,
-                            (match, buffer, source) => {
-                                const bufferName = buffer.trim();
-                                return `strncpy(${bufferName}, ${source}, sizeof(${bufferName}) - 1);\n    ${bufferName}[sizeof(${bufferName}) - 1] = '\\0';`;
-                            }
-                        );
+        // Fix sprintf
+        fixedCode = fixedCode.replace(/sprintf\s*\(\s*([^,]+)\s*,\s*([^)]+)\s*\)/g, 
+            'snprintf($1, sizeof($1), $2)');
 
-                        // Fix gets
-                        fixedCode = fixedCode.replace(
-                            /gets\s*\(\s*([^)]+)\s*\)/g,
-                            (match, buffer) => {
-                                const bufferName = buffer.trim();
-                                return `fgets(${bufferName}, sizeof(${bufferName}), stdin)`;
-                            }
-                        );
+        // Fix strcat
+        fixedCode = fixedCode.replace(/strcat\s*\(\s*([^,]+)\s*,\s*([^)]+)\s*\)/g, 
+            'strncat($1, $2, sizeof($1) - strlen($1) - 1)');
 
-                        // Fix sprintf
-                        fixedCode = fixedCode.replace(
-                            /sprintf\s*\(\s*([^,]+)\s*,\s*([^)]+)\s*\)/g,
-                            (match, buffer, format) => {
-                                const bufferName = buffer.trim();
-                                return `snprintf(${bufferName}, sizeof(${bufferName}), ${format})`;
-                            }
-                        );
-
-                        // Fix strcat
-                        fixedCode = fixedCode.replace(
-                            /strcat\s*\(\s*([^,]+)\s*,\s*([^)]+)\s*\)/g,
-                            (match, buffer, source) => {
-                                const bufferName = buffer.trim();
-                                return `strncat(${bufferName}, ${source}, sizeof(${bufferName}) - strlen(${bufferName}) - 1)`;
-                            }
-                        );
-                    }
-                    break;
-
-                case 'CWE-134':
-                    // Fix format string vulnerabilities
-                    fixedCode = fixedCode.replace(
-                        /printf\s*\(\s*([^)]+)\s*\)/g,
-                        (match, arg) => {
-                            // If it's not already a format string, make it one
-                            if (!arg.includes('"%s"') && !arg.includes('"%d"') && !arg.includes('"%f"')) {
-                                return `printf("%s", ${arg})`;
-                            }
-                            return match;
-                        }
-                    );
-                    break;
-
-                case 'CWE-78':
-                    // Comment out system calls
-                    fixedCode = fixedCode.replace(
-                        /system\s*\(\s*([^)]+)\s*\)/g,
-                        (match, command) => {
-                            return `// system(${command}); // SECURITY: Removed for safety`;
-                        }
-                    );
-                    break;
+        // Fix printf format string
+        fixedCode = fixedCode.replace(/printf\s*\(\s*([^)]+)\s*\)/g, (match, arg) => {
+            if (!arg.includes('"%s"') && !arg.includes('"%d"') && !arg.includes('"%f"')) {
+                return `printf("%s", ${arg})`;
             }
+            return match;
         });
+
+        // Fix system calls
+        fixedCode = fixedCode.replace(/system\s*\(\s*([^)]+)\s*\)/g, 
+            '// system($1); // SECURITY: Removed for safety');
 
         // Add security headers and includes if not present
         if (!fixedCode.includes('#include <string.h>')) {
@@ -127,4 +82,4 @@ module.exports = async (req, res) => {
         console.error('Fix error:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
-}
+};
