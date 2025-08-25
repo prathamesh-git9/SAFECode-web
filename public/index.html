@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAFECode - Secure Code Analysis</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <a href="/">SAFECode</a>
+            </div>
+            <div class="nav-links">
+                <a href="/how-to-use">How to Use</a>
+                <a href="/login">Login</a>
+                <a href="/signup">Sign Up</a>
+                <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        <header class="header">
+            <h1>Secure Code Analysis</h1>
+            <p>Scan your C/C++ code for vulnerabilities and get AI-powered fixes</p>
+        </header>
+
+        <main class="main-content">
+            <!-- Input Section -->
+            <div class="input-section">
+                <div class="input-header">
+                    <h2>Code Input</h2>
+                    <div class="input-actions">
+                        <button class="btn btn-secondary" onclick="clearCode()">Clear</button>
+                        <button class="btn btn-primary" onclick="scanCode()">Scan for vulnerabilities</button>
+                        <button class="btn btn-success" id="fixBtn" onclick="fixCode()" style="display: none;">Fix
+                            Code</button>
+                    </div>
+                </div>
+
+                <div class="file-upload-container">
+                    <input type="file" id="fileInput" accept=".c,.cpp,.h,.hpp" onchange="loadFile(event)"
+                        style="display: none;">
+                    <button class="btn btn-outline" onclick="document.getElementById('fileInput').click()">
+                        📁 Upload C/C++ File
+                    </button>
+                </div>
+
+                <textarea id="codeInput"
+                    placeholder="Paste your C/C++ code here...&#10;&#10;Example:&#10;#include &lt;stdio.h&gt;&#10;#include &lt;string.h&gt;&#10;&#10;int main() {&#10;    char buffer[10];&#10;    char *user_input = &quot;This is a very long string&quot;;&#10;    strcpy(buffer, user_input); // Vulnerable&#10;    printf(user_input); // Vulnerable&#10;    return 0;&#10;}"></textarea>
+            </div>
+
+            <!-- Results Section -->
+            <div class="results-section" id="resultsSection" style="display: none;">
+                <div class="results-header">
+                    <h2>Scan Results</h2>
+                    <button class="btn btn-outline" onclick="exportReport()">Export Report</button>
+                </div>
+
+                <div class="vulnerabilities-grid" id="vulnerabilitiesGrid">
+                    <!-- Vulnerabilities will be populated here -->
+                </div>
+            </div>
+
+            <!-- Fixed Code Section -->
+            <div class="fixed-code-section" id="fixedCodeSection" style="display: none;">
+                <div class="fixed-code-header">
+                    <h2>Fixed Code</h2>
+                    <button class="btn btn-outline" onclick="copyFixedCode()">Copy Fixed Code</button>
+                </div>
+                <pre id="fixedCode" class="code-display"></pre>
+            </div>
+        </main>
+    </div>
+
+    <!-- Notification -->
+    <div id="notification" class="notification"></div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

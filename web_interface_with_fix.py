@@ -1,3 +1,4 @@
+y
 #!/usr/bin/env python3
 """
 SAFECode-Web Interface with Auto-Fix
