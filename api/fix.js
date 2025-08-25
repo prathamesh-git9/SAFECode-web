@@ -25,7 +25,7 @@ module.exports = async (req, res) => {
         }
 
         let fixedCode = code;
-        
+
         // GPT API Key (you should set this as environment variable in production)
         const OPENAI_API_KEY = process.env.OPENAI_API_KEY || 'sk-proj-your-api-key-here';
 
