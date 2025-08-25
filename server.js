@@ -298,9 +298,9 @@ app.post('/api/fix', async (req, res) => {
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-    res.json({ 
-        status: 'ok', 
-        message: 'SAFECode API is running', 
+    res.json({
+        status: 'ok',
+        message: 'SAFECode API is running',
         version: VERSION,
         gpt_available: !!OPENAI_API_KEY,
         features: {
@@ -316,7 +316,7 @@ app.get('/api/health', (req, res) => {
 app.get('/api/auth/status', (req, res) => {
     // This would typically verify Firebase tokens
     // For now, we'll return a simple status
-    res.json({ 
+    res.json({
         authenticated: false,
         message: 'Authentication status endpoint'
     });

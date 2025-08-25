@@ -1,3 +1,6 @@
+// Import Firebase auth
+import { auth, provider } from './firebase-config.js';
+
 // Theme management
 let currentTheme = localStorage.getItem('theme') || 'light';
 
@@ -14,17 +17,19 @@ document.addEventListener('DOMContentLoaded', function () {
 // Firebase Authentication Functions
 function initializeAuth() {
     // Listen for auth state changes
-    auth.onAuthStateChanged(function(user) {
-        if (user) {
-            // User is signed in
-            currentUser = user;
-            updateAuthUI(true);
-            showNotification(`Welcome, ${user.displayName}!`, 'success');
-        } else {
-            // User is signed out
-            currentUser = null;
-            updateAuthUI(false);
-        }
+    import('firebase/auth').then(({ onAuthStateChanged }) => {
+        onAuthStateChanged(auth, function (user) {
+            if (user) {
+                // User is signed in
+                currentUser = user;
+                updateAuthUI(true);
+                showNotification(`Welcome, ${user.displayName}!`, 'success');
+            } else {
+                // User is signed out
+                currentUser = null;
+                updateAuthUI(false);
+            }
+        });
     });
 }
 
@@ -44,26 +49,30 @@ function updateAuthUI(isSignedIn) {
 }
 
 function signInWithGoogle() {
-    auth.signInWithPopup(provider)
-        .then((result) => {
-            // Successfully signed in
-            console.log('Signed in successfully');
-        })
-        .catch((error) => {
-            console.error('Sign-in error:', error);
-            showNotification('Sign-in failed. Please try again.', 'error');
-        });
+    import('firebase/auth').then(({ signInWithPopup }) => {
+        signInWithPopup(auth, provider)
+            .then((result) => {
+                // Successfully signed in
+                console.log('Signed in successfully');
+            })
+            .catch((error) => {
+                console.error('Sign-in error:', error);
+                showNotification('Sign-in failed. Please try again.', 'error');
+            });
+    });
 }
 
 function signOut() {
-    auth.signOut()
-        .then(() => {
-            showNotification('Signed out successfully', 'info');
-        })
-        .catch((error) => {
-            console.error('Sign-out error:', error);
-            showNotification('Sign-out failed. Please try again.', 'error');
-        });
+    import('firebase/auth').then(({ signOut: firebaseSignOut }) => {
+        firebaseSignOut(auth)
+            .then(() => {
+                showNotification('Signed out successfully', 'info');
+            })
+            .catch((error) => {
+                console.error('Sign-out error:', error);
+                showNotification('Sign-out failed. Please try again.', 'error');
+            });
+    });
 }
 
 function setTheme(theme) {

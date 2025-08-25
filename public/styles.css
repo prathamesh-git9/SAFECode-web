@@ -159,10 +159,11 @@ body {
 .auth-btn.signout:hover {
     background-color: #d93025;
 }
-    cursor: pointer;
-    padding: 0.5rem;
-    border-radius: 0.5rem;
-    transition: background-color 0.2s ease;
+
+cursor: pointer;
+padding: 0.5rem;
+border-radius: 0.5rem;
+transition: background-color 0.2s ease;
 }
 
 .theme-toggle:hover {
