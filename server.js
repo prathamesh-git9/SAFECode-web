@@ -47,7 +47,7 @@ app.post('/api/scan', async (req, res) => {
         }
 
         // Check for format string vulnerabilities (printf without format string)
-        if (code.includes('printf(') && !code.includes('printf("%s"') && !code.includes('printf("%d"') && !code.includes('printf("%f"') && !code.includes('printf("\\n"'))) {
+        if (code.includes('printf(') && !code.includes('printf("%s"') && !code.includes('printf("%d"') && !code.includes('printf("%f"') && !code.includes('printf("\\n"')) {
             findings.push({
                 id: "v2",
                 cwe: "CWE-134",
