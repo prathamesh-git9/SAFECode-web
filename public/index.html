@@ -21,7 +21,8 @@
       <div class="nav-links">
         <a href="/how-to-use">How to Use</a>
         <div class="auth-buttons" id="authButtons">
-          <button class="btn btn-outline" onclick="signInWithGoogle()">Login with Google</button>
+          <button class="btn btn-outline" onclick="showLoginModal()">Login</button>
+          <button class="btn btn-primary" onclick="showSignupModal()">Sign Up</button>
         </div>
         <div class="user-profile" id="userProfile" style="display: none;">
           <span id="userName"></span>
@@ -89,9 +90,68 @@
   <!-- Notification -->
   <div id="notification" class="notification"></div>
 
-    <!-- Firebase Config -->
-  <script type="module" src="firebase-config.js"></script>
-  <script type="module" src="script.js"></script>
+  <!-- Login Modal -->
+  <div id="loginModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <span class="close" onclick="closeLoginModal()">&times;</span>
+      <h2>Login</h2>
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="loginEmail">Email:</label>
+          <input type="email" id="loginEmail" required>
+        </div>
+        <div class="form-group">
+          <label for="loginPassword">Password:</label>
+          <input type="password" id="loginPassword" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Login</button>
+      </form>
+      <div class="social-login">
+        <button class="btn btn-google" onclick="signInWithGoogle()">
+          <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google" width="20">
+          Login with Google
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Signup Modal -->
+  <div id="signupModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <span class="close" onclick="closeSignupModal()">&times;</span>
+      <h2>Sign Up</h2>
+      <form id="signupForm">
+        <div class="form-group">
+          <label for="signupName">Full Name:</label>
+          <input type="text" id="signupName" required>
+        </div>
+        <div class="form-group">
+          <label for="signupEmail">Email:</label>
+          <input type="email" id="signupEmail" required>
+        </div>
+        <div class="form-group">
+          <label for="signupPassword">Password:</label>
+          <input type="password" id="signupPassword" required minlength="6">
+        </div>
+        <button type="submit" class="btn btn-primary">Sign Up</button>
+      </form>
+      <div class="social-login">
+        <button class="btn btn-google" onclick="signInWithGoogle()">
+          <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google" width="20">
+          Sign up with Google
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-analytics-compat.js"></script>
+  
+  <!-- Firebase Config -->
+  <script src="firebase-config.js"></script>
+  <script src="script.js"></script>
 </body>
 
 </html>

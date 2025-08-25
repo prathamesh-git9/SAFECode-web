@@ -1,6 +1,3 @@
-// Import Firebase auth
-import { auth, provider } from './firebase-config.js';
-
 // Theme management
 let currentTheme = localStorage.getItem('theme') || 'light';
 
@@ -17,19 +14,17 @@ document.addEventListener('DOMContentLoaded', function () {
 // Firebase Authentication Functions
 function initializeAuth() {
     // Listen for auth state changes
-    import('firebase/auth').then(({ onAuthStateChanged }) => {
-        onAuthStateChanged(auth, function (user) {
-            if (user) {
-                // User is signed in
-                currentUser = user;
-                updateAuthUI(true);
-                showNotification(`Welcome, ${user.displayName}!`, 'success');
-            } else {
-                // User is signed out
-                currentUser = null;
-                updateAuthUI(false);
-            }
-        });
+    window.auth.onAuthStateChanged(function (user) {
+        if (user) {
+            // User is signed in
+            currentUser = user;
+            updateAuthUI(true);
+            showNotification(`Welcome, ${user.displayName}!`, 'success');
+        } else {
+            // User is signed out
+            currentUser = null;
+            updateAuthUI(false);
+        }
     });
 }
 
@@ -49,31 +44,124 @@ function updateAuthUI(isSignedIn) {
 }
 
 function signInWithGoogle() {
-    import('firebase/auth').then(({ signInWithPopup }) => {
-        signInWithPopup(auth, provider)
-            .then((result) => {
-                // Successfully signed in
-                console.log('Signed in successfully');
-            })
-            .catch((error) => {
-                console.error('Sign-in error:', error);
-                showNotification('Sign-in failed. Please try again.', 'error');
-            });
-    });
+    window.auth.signInWithPopup(window.provider)
+        .then((result) => {
+            // Successfully signed in
+            console.log('Signed in successfully');
+        })
+        .catch((error) => {
+            console.error('Sign-in error:', error);
+            showNotification('Sign-in failed. Please try again.', 'error');
+        });
 }
 
 function signOut() {
-    import('firebase/auth').then(({ signOut: firebaseSignOut }) => {
-        firebaseSignOut(auth)
-            .then(() => {
-                showNotification('Signed out successfully', 'info');
-            })
-            .catch((error) => {
-                console.error('Sign-out error:', error);
-                showNotification('Sign-out failed. Please try again.', 'error');
-            });
-    });
+    window.auth.signOut()
+        .then(() => {
+            showNotification('Signed out successfully', 'info');
+        })
+        .catch((error) => {
+            console.error('Sign-out error:', error);
+            showNotification('Sign-out failed. Please try again.', 'error');
+        });
 }
+
+// Modal Functions
+function showLoginModal() {
+    document.getElementById('loginModal').style.display = 'block';
+}
+
+function closeLoginModal() {
+    document.getElementById('loginModal').style.display = 'none';
+}
+
+function showSignupModal() {
+    document.getElementById('signupModal').style.display = 'block';
+}
+
+function closeSignupModal() {
+    document.getElementById('signupModal').style.display = 'none';
+}
+
+// Email/Password Authentication
+function signUpWithEmail(email, password, displayName) {
+    window.auth.createUserWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+            // Update profile with display name
+            return userCredential.user.updateProfile({
+                displayName: displayName
+            });
+        })
+        .then(() => {
+            showNotification('Account created successfully!', 'success');
+            closeSignupModal();
+        })
+        .catch((error) => {
+            console.error('Signup error:', error);
+            showNotification(getErrorMessage(error.code), 'error');
+        });
+}
+
+function signInWithEmail(email, password) {
+    window.auth.signInWithEmailAndPassword(email, password)
+        .then(() => {
+            showNotification('Logged in successfully!', 'success');
+            closeLoginModal();
+        })
+        .catch((error) => {
+            console.error('Login error:', error);
+            showNotification(getErrorMessage(error.code), 'error');
+        });
+}
+
+function getErrorMessage(errorCode) {
+    switch (errorCode) {
+        case 'auth/user-not-found':
+            return 'No account found with this email address.';
+        case 'auth/wrong-password':
+            return 'Incorrect password.';
+        case 'auth/email-already-in-use':
+            return 'An account with this email already exists.';
+        case 'auth/weak-password':
+            return 'Password should be at least 6 characters.';
+        case 'auth/invalid-email':
+            return 'Invalid email address.';
+        default:
+            return 'Authentication failed. Please try again.';
+    }
+}
+
+// Form Event Listeners
+document.addEventListener('DOMContentLoaded', function() {
+    // Login form
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        signInWithEmail(email, password);
+    });
+
+    // Signup form
+    document.getElementById('signupForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const name = document.getElementById('signupName').value;
+        const email = document.getElementById('signupEmail').value;
+        const password = document.getElementById('signupPassword').value;
+        signUpWithEmail(email, password, name);
+    });
+
+    // Close modals when clicking outside
+    window.onclick = function(event) {
+        const loginModal = document.getElementById('loginModal');
+        const signupModal = document.getElementById('signupModal');
+        if (event.target === loginModal) {
+            closeLoginModal();
+        }
+        if (event.target === signupModal) {
+            closeSignupModal();
+        }
+    };
+});
 
 function setTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);
