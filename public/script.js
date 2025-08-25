@@ -4,28 +4,23 @@ let currentTheme = localStorage.getItem('theme') || 'light';
 // Authentication state
 let currentUser = null;
 
-// Initialize theme and authentication
-document.addEventListener('DOMContentLoaded', function () {
-    setTheme(currentTheme);
-    setupKeyboardShortcuts();
-    initializeAuth();
-});
-
 // Firebase Authentication Functions
 function initializeAuth() {
     // Listen for auth state changes
-    window.auth.onAuthStateChanged(function (user) {
-        if (user) {
-            // User is signed in
-            currentUser = user;
-            updateAuthUI(true);
-            showNotification(`Welcome, ${user.displayName}!`, 'success');
-        } else {
-            // User is signed out
-            currentUser = null;
-            updateAuthUI(false);
-        }
-    });
+    if (window.auth) {
+        window.auth.onAuthStateChanged(function (user) {
+            if (user) {
+                // User is signed in
+                currentUser = user;
+                updateAuthUI(true);
+                showNotification(`Welcome, ${user.displayName}!`, 'success');
+            } else {
+                // User is signed out
+                currentUser = null;
+                updateAuthUI(false);
+            }
+        });
+    }
 }
 
 function updateAuthUI(isSignedIn) {
@@ -132,26 +127,32 @@ function getErrorMessage(errorCode) {
 }
 
 // Form Event Listeners
-document.addEventListener('DOMContentLoaded', function() {
+function setupFormListeners() {
     // Login form
-    document.getElementById('loginForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const email = document.getElementById('loginEmail').value;
-        const password = document.getElementById('loginPassword').value;
-        signInWithEmail(email, password);
-    });
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        loginForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            signInWithEmail(email, password);
+        });
+    }
 
     // Signup form
-    document.getElementById('signupForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const name = document.getElementById('signupName').value;
-        const email = document.getElementById('signupEmail').value;
-        const password = document.getElementById('signupPassword').value;
-        signUpWithEmail(email, password, name);
-    });
+    const signupForm = document.getElementById('signupForm');
+    if (signupForm) {
+        signupForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const name = document.getElementById('signupName').value;
+            const email = document.getElementById('signupEmail').value;
+            const password = document.getElementById('signupPassword').value;
+            signUpWithEmail(email, password, name);
+        });
+    }
 
     // Close modals when clicking outside
-    window.onclick = function(event) {
+    window.onclick = function (event) {
         const loginModal = document.getElementById('loginModal');
         const signupModal = document.getElementById('signupModal');
         if (event.target === loginModal) {
@@ -161,7 +162,7 @@ document.addEventListener('DOMContentLoaded', function() {
             closeSignupModal();
         }
     };
-});
+}
 
 function setTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);
@@ -489,7 +490,7 @@ function setupKeyboardShortcuts() {
 }
 
 // Auto-resize textarea
-document.addEventListener('DOMContentLoaded', function () {
+function setupTextareaResize() {
     const textarea = document.getElementById('codeInput');
     if (textarea) {
         textarea.addEventListener('input', function () {
@@ -497,4 +498,17 @@ document.addEventListener('DOMContentLoaded', function () {
             this.style.height = Math.max(300, this.scrollHeight) + 'px';
         });
     }
+}
+
+// Initialize everything when DOM is loaded
+document.addEventListener('DOMContentLoaded', function () {
+    setTheme(currentTheme);
+    setupKeyboardShortcuts();
+    setupFormListeners();
+    setupTextareaResize();
+    
+    // Initialize auth after a short delay to ensure Firebase is loaded
+    setTimeout(() => {
+        initializeAuth();
+    }, 100);
 });

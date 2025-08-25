@@ -327,6 +327,11 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// Serve the how-to-use page
+app.get('/how-to-use', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'how-to-use.html'));
+});
+
 app.listen(PORT, () => {
     console.log(`🚀 SAFECode Web Server v${VERSION} running on http://localhost:${PORT}`);
     console.log(`📡 API endpoints:`);
