@@ -1,118 +1,46 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-
-# Virtual Environment
-venv/
-env/
-ENV/
-.venv/
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Logs
-*.log
-
-# Temporary files
-*.tmp
-*.temp
-fixed_code.c
-test.c
-
-# Test files created during development
-test_*.c
-test_*.html
-test_*.py
-test_buttons.html
-test_js.html
-test_export.c
-test_vulnerable.c
-test_web_interface.py
-test_complex_vulnerabilities.py
-test_gpt_fix.py
-
-# Documentation files created during development
-CLEANUP_SUMMARY.md
-FIXED_ISSUES.md
-test_summary.md
-VERSIONING.md
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
 # Environment variables
 .env
 .env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
-# Node modules (if any frontend components)
-node_modules/
-npm-debug.log*
+# Build outputs
+dist/
+build/
 
-# Coverage reports
-htmlcov/
-.coverage
-.coverage.*
-coverage.xml
-*.cover
-.hypothesis/
-.pytest_cache/
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
 
-# Jupyter Notebook
-.ipynb_checkpoints
+# OS files
+.DS_Store
+Thumbs.db
 
-# pyenv
-.python-version
+# Logs
+logs
+*.log
 
-# pipenv
-Pipfile.lock
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
 
-# PEP 582
-__pypackages__/
+# Coverage directory used by tools like istanbul
+coverage/
 
-# Celery
-celerybeat-schedule
-celerybeat.pid
+# Temporary files
+tmp/
+temp/
 
-# SageMath parsed files
-*.sage.py
-
-# Spyder project settings
-.spyderproject
-.spyproject
-
-# Rope project settings
-.ropeproject
-
-# mkdocs documentation
-/site
-
-# mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
-.vercel
+# Test files with API keys
+test_gpt_api.js
