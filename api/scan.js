@@ -23,7 +23,7 @@ module.exports = async (req, res) => {
         }
 
         // GPT API Key (you should set this as environment variable in production)
-        const OPENAI_API_KEY = process.env.OPENAI_API_KEY || 'sk-proj-your-api-key-here';
+        const OPENAI_API_KEY = process.env.OPENAI_API_KEY || 'your_openai_api_key_here';
 
         // Mock SAST scanner that identifies common C/C++ vulnerabilities
         const findings = [];
